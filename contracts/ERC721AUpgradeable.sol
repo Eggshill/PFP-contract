@@ -55,6 +55,9 @@ contract ERC721AUpgradeable is
     // Token symbol
     string private _symbol;
 
+    // Contract-level metadata
+    string private _contractURI;
+
     // Mapping from token ID to ownership details
     // An empty struct value does not necessarily mean the token is unowned. See ownershipOf implementation for details.
     mapping(uint256 => TokenOwnership) internal _ownerships;
@@ -74,17 +77,19 @@ contract ERC721AUpgradeable is
     function __ERC721A_init(
         string memory name_,
         string memory symbol_,
+        string memory contractURI_,
         uint256 maxBatchSize_,
         uint256 collectionSize_
     ) internal onlyInitializing {
         __Context_init_unchained();
         __ERC165_init_unchained();
-        __ERC721A_init_unchained(name_, symbol_, maxBatchSize_, collectionSize_);
+        __ERC721A_init_unchained(name_, symbol_, contractURI_, maxBatchSize_, collectionSize_);
     }
 
     function __ERC721A_init_unchained(
         string memory name_,
         string memory symbol_,
+        string memory contractURI_,
         uint256 maxBatchSize_,
         uint256 collectionSize_
     ) internal onlyInitializing {
@@ -92,6 +97,7 @@ contract ERC721AUpgradeable is
         require(maxBatchSize_ > 0, "ERC721A: max batch size must be nonzero");
         _name = name_;
         _symbol = symbol_;
+        _contractURI = contractURI_;
         maxBatchSize = maxBatchSize_;
         collectionSize = collectionSize_;
     }
@@ -213,6 +219,13 @@ contract ERC721AUpgradeable is
      */
     function symbol() public view virtual override returns (string memory) {
         return _symbol;
+    }
+
+    /**
+     * @dev Contract-level metadata for opensea
+     */
+    function contractURI() public view returns (string memory) {
+        return _contractURI;
     }
 
     /**

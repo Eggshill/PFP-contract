@@ -22,6 +22,7 @@ contract Factory is OwnableUpgradeable, ReentrancyGuardUpgradeable {
     function createNFT(
         string memory name_,
         string memory symbol_,
+        string memory contractURI_,
         uint256 maxBatchSize_,
         uint256 collectionSize_,
         uint256 amountForAuctionAndDev_,
@@ -33,7 +34,15 @@ contract Factory is OwnableUpgradeable, ReentrancyGuardUpgradeable {
         // infos[2] = _baseUri;
 
         address clone = ClonesUpgradeable.clone(ERC721A_IMPL);
-        NFT(clone).initialize(name_, symbol_, maxBatchSize_, collectionSize_, amountForAuctionAndDev_, amountForDevs_);
+        NFT(clone).initialize(
+            name_,
+            symbol_,
+            contractURI_,
+            maxBatchSize_,
+            collectionSize_,
+            amountForAuctionAndDev_,
+            amountForDevs_
+        );
         NFT(clone).transferOwnership(msg.sender);
         emit CreateNFT(clone);
     }

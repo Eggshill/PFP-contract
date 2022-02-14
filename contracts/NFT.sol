@@ -30,6 +30,7 @@ contract NFT is OwnableUpgradeable, ERC721AUpgradeable, ReentrancyGuardUpgradeab
     function initialize(
         string memory name_,
         string memory symbol_,
+        string memory contractURI_,
         uint256 maxBatchSize_,
         uint256 collectionSize_,
         uint256 amountForAuctionAndDev_,
@@ -37,7 +38,7 @@ contract NFT is OwnableUpgradeable, ERC721AUpgradeable, ReentrancyGuardUpgradeab
     ) public initializer {
         __Context_init_unchained();
         __ERC165_init_unchained();
-        __ERC721A_init_unchained(name_, symbol_, maxBatchSize_, collectionSize_);
+        __ERC721A_init_unchained(name_, symbol_, contractURI_, maxBatchSize_, collectionSize_);
 
         maxPerAddressDuringMint = maxBatchSize_;
         amountForAuctionAndDev = amountForAuctionAndDev_;
@@ -84,7 +85,6 @@ contract NFT is OwnableUpgradeable, ERC721AUpgradeable, ReentrancyGuardUpgradeab
         // require(allowlist[msg.sender] > 0, "not eligible for allowlist mint");
         require(totalSupply() + 1 <= collectionSize, "reached max supply");
 
-        // require(!isClaimed(index), "MerkleDistributor: Drop already claimed.");
         require(numberMinted(msg.sender) + quantity <= maxPerAddressDuringMint, "can not mint this many");
 
         // Verify the merkle proof.
