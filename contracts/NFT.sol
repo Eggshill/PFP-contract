@@ -14,6 +14,7 @@ contract NFT is OwnableUpgradeable, ERC721AUpgradeable, ReentrancyGuardUpgradeab
     uint256 public amountForDevs;
     // uint256 public amountForAuctionAndDev;
     bytes32 public override merkleRoot;
+    bool private _isUriFrozen;
 
     struct SaleConfig {
         uint32 auctionSaleStartTime;
@@ -51,16 +52,6 @@ contract NFT is OwnableUpgradeable, ERC721AUpgradeable, ReentrancyGuardUpgradeab
         _;
     }
 
-    function auctionMint(uint256 quantity) external payable callerIsUser {
-        uint256 _saleStartTime = uint256(saleConfig.auctionSaleStartTime);
-        require(_saleStartTime != 0 && block.timestamp >= _saleStartTime, "sale has not started yet");
-        require(totalSupply() + quantity <= collectionSize, "reached max supply");
-        require(numberMinted(msg.sender) + quantity <= maxPerAddressDuringMint, "can not mint this many");
-        uint256 totalCost = getAuctionPrice(_saleStartTime) * quantity;
-        _safeMint(msg.sender, quantity);
-        refundIfOver(totalCost);
-    }
-
     // function allowlistMint() external payable callerIsUser {
     //     uint256 price = uint256(saleConfig.mintlistPrice);
     //     require(price != 0, "allowlist sale has not begun yet");
@@ -81,7 +72,6 @@ contract NFT is OwnableUpgradeable, ERC721AUpgradeable, ReentrancyGuardUpgradeab
         require(price != 0, "allowlist sale has not begun yet");
         // require(allowlist[msg.sender] > 0, "not eligible for allowlist mint");
         require(totalSupply() + quantity <= collectionSize, "reached max supply");
-
         require(numberMinted(msg.sender) + quantity <= maxPerAddressDuringMint, "can not mint this many");
 
         // Verify the merkle proof.
@@ -110,6 +100,16 @@ contract NFT is OwnableUpgradeable, ERC721AUpgradeable, ReentrancyGuardUpgradeab
         require(numberMinted(msg.sender) + quantity <= maxPerAddressDuringMint, "can not mint this many");
         _safeMint(msg.sender, quantity);
         refundIfOver(publicPrice * quantity);
+    }
+
+    function auctionMint(uint256 quantity) external payable callerIsUser {
+        uint256 _saleStartTime = uint256(saleConfig.auctionSaleStartTime);
+        require(_saleStartTime != 0 && block.timestamp >= _saleStartTime, "sale has not started yet");
+        require(totalSupply() + quantity <= collectionSize, "reached max supply");
+        require(numberMinted(msg.sender) + quantity <= maxPerAddressDuringMint, "can not mint this many");
+        uint256 totalCost = getAuctionPrice(_saleStartTime) * quantity;
+        _safeMint(msg.sender, quantity);
+        refundIfOver(totalCost);
     }
 
     function refundIfOver(uint256 price) private {
@@ -191,7 +191,13 @@ contract NFT is OwnableUpgradeable, ERC721AUpgradeable, ReentrancyGuardUpgradeab
     }
 
     function setBaseURI(string calldata baseURI) external onlyOwner {
+        require(!_isUriFrozen, "Token URI is frozen");
         _baseTokenURI = baseURI;
+    }
+
+    function freezeTokenURI() public onlyOwner {
+        require(!_isUriFrozen, "Token URI is frozen");
+        _isUriFrozen = true;
     }
 
     function withdrawMoney() external onlyOwner nonReentrant {
