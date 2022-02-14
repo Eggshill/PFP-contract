@@ -40,7 +40,7 @@ contract Factory is OwnableUpgradeable, ReentrancyGuardUpgradeable {
             contractURI_,
             maxBatchSize_,
             collectionSize_,
-            amountForAuctionAndDev_,
+            // amountForAuctionAndDev_,
             amountForDevs_
         );
         NFT(clone).transferOwnership(msg.sender);

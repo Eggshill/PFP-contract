@@ -12,7 +12,7 @@ import "@openzeppelin/contracts-upgradeable/utils/cryptography/MerkleProofUpgrad
 contract NFT is OwnableUpgradeable, ERC721AUpgradeable, ReentrancyGuardUpgradeable, IMerkleDistributor {
     uint256 public maxPerAddressDuringMint;
     uint256 public amountForDevs;
-    uint256 public amountForAuctionAndDev;
+    // uint256 public amountForAuctionAndDev;
     bytes32 public override merkleRoot;
 
     struct SaleConfig {
@@ -33,7 +33,7 @@ contract NFT is OwnableUpgradeable, ERC721AUpgradeable, ReentrancyGuardUpgradeab
         string memory contractURI_,
         uint256 maxBatchSize_,
         uint256 collectionSize_,
-        uint256 amountForAuctionAndDev_,
+        // uint256 amountForAuctionAndDev_,
         uint256 amountForDevs_
     ) public initializer {
         __Context_init_unchained();
@@ -41,9 +41,9 @@ contract NFT is OwnableUpgradeable, ERC721AUpgradeable, ReentrancyGuardUpgradeab
         __ERC721A_init_unchained(name_, symbol_, contractURI_, maxBatchSize_, collectionSize_);
 
         maxPerAddressDuringMint = maxBatchSize_;
-        amountForAuctionAndDev = amountForAuctionAndDev_;
+        // amountForAuctionAndDev = amountForAuctionAndDev_;
         amountForDevs = amountForDevs_;
-        require(amountForAuctionAndDev_ <= collectionSize_, "larger collection size needed");
+        // require(amountForAuctionAndDev_ <= collectionSize_, "larger collection size needed");
     }
 
     modifier callerIsUser() {
@@ -54,10 +54,7 @@ contract NFT is OwnableUpgradeable, ERC721AUpgradeable, ReentrancyGuardUpgradeab
     function auctionMint(uint256 quantity) external payable callerIsUser {
         uint256 _saleStartTime = uint256(saleConfig.auctionSaleStartTime);
         require(_saleStartTime != 0 && block.timestamp >= _saleStartTime, "sale has not started yet");
-        require(
-            totalSupply() + quantity <= amountForAuctionAndDev,
-            "not enough remaining reserved for auction to support desired mint amount"
-        );
+        require(totalSupply() + quantity <= collectionSize, "reached max supply");
         require(numberMinted(msg.sender) + quantity <= maxPerAddressDuringMint, "can not mint this many");
         uint256 totalCost = getAuctionPrice(_saleStartTime) * quantity;
         _safeMint(msg.sender, quantity);
@@ -83,7 +80,7 @@ contract NFT is OwnableUpgradeable, ERC721AUpgradeable, ReentrancyGuardUpgradeab
         uint256 price = uint256(saleConfig.mintlistPrice);
         require(price != 0, "allowlist sale has not begun yet");
         // require(allowlist[msg.sender] > 0, "not eligible for allowlist mint");
-        require(totalSupply() + 1 <= collectionSize, "reached max supply");
+        require(totalSupply() + quantity <= collectionSize, "reached max supply");
 
         require(numberMinted(msg.sender) + quantity <= maxPerAddressDuringMint, "can not mint this many");
 
