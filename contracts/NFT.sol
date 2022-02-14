@@ -200,8 +200,8 @@ contract NFT is OwnableUpgradeable, ERC721AUpgradeable, ReentrancyGuardUpgradeab
         _isUriFrozen = true;
     }
 
-    function withdrawMoney() external onlyOwner nonReentrant {
-        (bool success, ) = msg.sender.call{value: address(this).balance}("");
+    function withdrawMoney() external nonReentrant {
+        (bool success, ) = owner().call{value: address(this).balance}("");
         require(success, "Transfer failed.");
     }
 
