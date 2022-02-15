@@ -3,6 +3,8 @@
 pragma solidity ^0.8.4;
 
 import "./NFT.sol";
+import "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC721/IERC721Upgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/ClonesUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
@@ -10,6 +12,8 @@ import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.
 import "@openzeppelin/contracts-upgradeable/utils/StringsUpgradeable.sol";
 
 contract Factory is OwnableUpgradeable, ReentrancyGuardUpgradeable {
+    using SafeERC20Upgradeable for IERC20Upgradeable;
+
     address public immutable ERC721A_IMPL;
 
     address public vrfCoordinatorAddress;
@@ -48,8 +52,8 @@ contract Factory is OwnableUpgradeable, ReentrancyGuardUpgradeable {
         // infos[1] = _symbol;
         // infos[2] = _baseUri;
 
-        address clone = ClonesUpgradeable.clone(ERC721A_IMPL);
-        NFT(clone).initialize(
+        address clonedNFT = ClonesUpgradeable.clone(ERC721A_IMPL);
+        NFT(clonedNFT).initialize(
             name_,
             symbol_,
             contractURI_,
@@ -62,7 +66,16 @@ contract Factory is OwnableUpgradeable, ReentrancyGuardUpgradeable {
             keyHash,
             fee
         );
-        NFT(clone).transferOwnership(msg.sender);
-        emit CreateNFT(clone);
+        NFT(clonedNFT).transferOwnership(msg.sender);
+        emit CreateNFT(clonedNFT);
+
+        IERC20Upgradeable(linkAddress).safeTransfer(clonedNFT, fee);
+    }
+
+    function withdrawLink(address destination, uint256 amount) external onlyOwner {
+        require(destination != address(0), "DESTINATION_CANNT_BE_0_ADDRESS");
+        uint256 balance = IERC20Upgradeable(linkAddress).balanceOf(address(this));
+        require(balance >= amount, "AMOUNT_CANNT_MORE_THAN_BALANCE");
+        IERC20Upgradeable(linkAddress).safeTransfer(destination, amount);
     }
 }
