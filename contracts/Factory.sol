@@ -25,8 +25,12 @@ contract Factory is OwnableUpgradeable, ReentrancyGuardUpgradeable {
         string memory contractURI_,
         uint256 maxBatchSize_,
         uint256 collectionSize_,
-        uint256 amountForAuctionAndDev_,
-        uint256 amountForDevs_
+        // uint256 amountForAuctionAndDev_,
+        uint256 amountForDevs_,
+        address vrfCoordinatorAddress_,
+        address linkAddress_,
+        bytes32 keyHash_,
+        uint256 fee_
     ) public {
         // string[] memory infos = new string[](3);
         // infos[0] = _name;
@@ -41,7 +45,11 @@ contract Factory is OwnableUpgradeable, ReentrancyGuardUpgradeable {
             maxBatchSize_,
             collectionSize_,
             // amountForAuctionAndDev_,
-            amountForDevs_
+            amountForDevs_,
+            vrfCoordinatorAddress_,
+            linkAddress_,
+            keyHash_,
+            fee_
         );
         NFT(clone).transferOwnership(msg.sender);
         emit CreateNFT(clone);

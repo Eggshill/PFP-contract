@@ -4,17 +4,43 @@ pragma solidity ^0.8.0;
 
 import "./ERC721AUpgradeable.sol";
 import "./interfaces/IMerkleDistributor.sol";
+import "./utils/VRFConsumerBaseUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/StringsUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/cryptography/MerkleProofUpgradeable.sol";
 
-contract NFT is OwnableUpgradeable, ERC721AUpgradeable, ReentrancyGuardUpgradeable, IMerkleDistributor {
+contract NFT is
+    VRFConsumerBaseUpgradeable,
+    OwnableUpgradeable,
+    ERC721AUpgradeable,
+    ReentrancyGuardUpgradeable,
+    IMerkleDistributor
+{
+    using StringsUpgradeable for uint256;
+
+    uint256 public constant AUCTION_START_PRICE = 1 ether;
+    uint256 public constant AUCTION_END_PRICE = 0.15 ether;
+    uint256 public constant AUCTION_PRICE_CURVE_LENGTH = 340 minutes;
+    uint256 public constant AUCTION_DROP_INTERVAL = 20 minutes;
+    uint256 public constant AUCTION_DROP_PER_STEP =
+        (AUCTION_START_PRICE - AUCTION_END_PRICE) / (AUCTION_PRICE_CURVE_LENGTH / AUCTION_DROP_INTERVAL);
+
     uint256 public maxPerAddressDuringMint;
     uint256 public amountForDevs;
     // uint256 public amountForAuctionAndDev;
     bytes32 public override merkleRoot;
-    bool private _isUriFrozen;
+    bytes32 public _keyHash;
+
+    bool public _revealed;
+    uint256 public _randomResult;
+    uint256 public _startingIndex;
+    bool public _isUriFrozen;
+    uint256 public _fee;
+
+    // // metadata URI
+    string private _baseTokenURI;
+    string private _notRevealedURI;
 
     struct SaleConfig {
         uint32 auctionSaleStartTime;
@@ -35,16 +61,24 @@ contract NFT is OwnableUpgradeable, ERC721AUpgradeable, ReentrancyGuardUpgradeab
         uint256 maxBatchSize_,
         uint256 collectionSize_,
         // uint256 amountForAuctionAndDev_,
-        uint256 amountForDevs_
+        uint256 amountForDevs_,
+        address vrfCoordinatorAddress_,
+        address linkAddress_,
+        bytes32 keyHash_,
+        uint256 fee_
     ) public initializer {
         __Context_init_unchained();
         __ERC165_init_unchained();
+        __VRFConsumerBase_init(vrfCoordinatorAddress_, linkAddress_);
         __ERC721A_init_unchained(name_, symbol_, contractURI_, maxBatchSize_, collectionSize_);
 
         maxPerAddressDuringMint = maxBatchSize_;
         // amountForAuctionAndDev = amountForAuctionAndDev_;
         amountForDevs = amountForDevs_;
         // require(amountForAuctionAndDev_ <= collectionSize_, "larger collection size needed");
+
+        _keyHash = keyHash_;
+        _fee = fee_;
     }
 
     modifier callerIsUser() {
@@ -115,7 +149,8 @@ contract NFT is OwnableUpgradeable, ERC721AUpgradeable, ReentrancyGuardUpgradeab
     function refundIfOver(uint256 price) private {
         require(msg.value >= price, "Need to send more ETH.");
         if (msg.value > price) {
-            payable(msg.sender).transfer(msg.value - price);
+            (bool success, ) = payable(msg.sender).call{value: msg.value - price}("");
+            require(success, "Failed to send Ether");
         }
     }
 
@@ -126,13 +161,6 @@ contract NFT is OwnableUpgradeable, ERC721AUpgradeable, ReentrancyGuardUpgradeab
     ) public view returns (bool) {
         return publicPriceWei != 0 && publicSaleKey != 0 && block.timestamp >= publicSaleStartTime;
     }
-
-    uint256 public constant AUCTION_START_PRICE = 1 ether;
-    uint256 public constant AUCTION_END_PRICE = 0.15 ether;
-    uint256 public constant AUCTION_PRICE_CURVE_LENGTH = 340 minutes;
-    uint256 public constant AUCTION_DROP_INTERVAL = 20 minutes;
-    uint256 public constant AUCTION_DROP_PER_STEP =
-        (AUCTION_START_PRICE - AUCTION_END_PRICE) / (AUCTION_PRICE_CURVE_LENGTH / AUCTION_DROP_INTERVAL);
 
     function getAuctionPrice(uint256 _saleStartTime) public view returns (uint256) {
         if (block.timestamp < _saleStartTime) {
@@ -183,9 +211,6 @@ contract NFT is OwnableUpgradeable, ERC721AUpgradeable, ReentrancyGuardUpgradeab
         }
     }
 
-    // // metadata URI
-    string private _baseTokenURI;
-
     function _baseURI() internal view virtual override returns (string memory) {
         return _baseTokenURI;
     }
@@ -195,9 +220,55 @@ contract NFT is OwnableUpgradeable, ERC721AUpgradeable, ReentrancyGuardUpgradeab
         _baseTokenURI = baseURI;
     }
 
-    function freezeTokenURI() public onlyOwner {
+    function setNotRevealedURI(string calldata notRevealedURI) external onlyOwner {
+        _notRevealedURI = notRevealedURI;
+    }
+
+    function freezeTokenURI() external onlyOwner {
         require(!_isUriFrozen, "Token URI is frozen");
         _isUriFrozen = true;
+    }
+
+    function reveal() external onlyOwner {
+        require(!_revealed, "Already revealed");
+        require(_startingIndex == 0, "Already set Starting index");
+
+        require(LINK.balanceOf(address(this)) >= _fee, "Not enough LINK");
+        requestRandomness(_keyHash, _fee);
+
+        // _revealed = true;
+    }
+
+    function tokenURI(uint256 tokenId) public view virtual override returns (string memory) {
+        require(_exists(tokenId), "ERC721Metadata: URI query for nonexistent token");
+
+        if (_revealed == false) {
+            return _notRevealedURI;
+        }
+
+        require(_startingIndex != 0, "randomness request hasn't finalized");
+
+        string memory baseURI = _baseURI();
+        return
+            bytes(baseURI).length != 0
+                ? string(abi.encodePacked(baseURI, ((tokenId + _startingIndex) % collectionSize).toString()))
+                : "default token uri?";
+    }
+
+    /**
+     * Callback function used by VRF Coordinator
+     */
+    function fulfillRandomness(bytes32 requestId, uint256 randomness) internal virtual override {
+        _startingIndex = (randomness % collectionSize);
+
+        // Prevent default sequence
+        if (_startingIndex == 0) {
+            unchecked {
+                _startingIndex = _startingIndex + 1;
+            }
+        }
+
+        _revealed = true;
     }
 
     function withdrawMoney() external nonReentrant {
