@@ -12,11 +12,26 @@ import "@openzeppelin/contracts-upgradeable/utils/StringsUpgradeable.sol";
 contract Factory is OwnableUpgradeable, ReentrancyGuardUpgradeable {
     address public immutable ERC721A_IMPL;
 
+    address public vrfCoordinatorAddress;
+    address public linkAddress;
+    bytes32 public keyHash;
+    uint256 public fee;
+
     event CreateNFT(address indexed nftAddress);
 
-    constructor() {
+    constructor(
+        address vrfCoordinatorAddress_,
+        address linkAddress_,
+        bytes32 keyHash_,
+        uint256 fee_
+    ) {
         __Ownable_init();
         ERC721A_IMPL = address(new NFT());
+
+        vrfCoordinatorAddress = vrfCoordinatorAddress_;
+        linkAddress = linkAddress_;
+        keyHash = keyHash_;
+        fee = fee_;
     }
 
     function createNFT(
@@ -26,11 +41,7 @@ contract Factory is OwnableUpgradeable, ReentrancyGuardUpgradeable {
         uint256 maxBatchSize_,
         uint256 collectionSize_,
         // uint256 amountForAuctionAndDev_,
-        uint256 amountForDevs_,
-        address vrfCoordinatorAddress_,
-        address linkAddress_,
-        bytes32 keyHash_,
-        uint256 fee_
+        uint256 amountForDevs_
     ) public {
         // string[] memory infos = new string[](3);
         // infos[0] = _name;
@@ -46,10 +57,10 @@ contract Factory is OwnableUpgradeable, ReentrancyGuardUpgradeable {
             collectionSize_,
             // amountForAuctionAndDev_,
             amountForDevs_,
-            vrfCoordinatorAddress_,
-            linkAddress_,
-            keyHash_,
-            fee_
+            vrfCoordinatorAddress,
+            linkAddress,
+            keyHash,
+            fee
         );
         NFT(clone).transferOwnership(msg.sender);
         emit CreateNFT(clone);

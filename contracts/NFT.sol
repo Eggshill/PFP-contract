@@ -30,13 +30,12 @@ contract NFT is
     uint256 public amountForDevs;
     // uint256 public amountForAuctionAndDev;
     bytes32 public override merkleRoot;
-    bytes32 public _keyHash;
-
-    bool public _revealed;
-    uint256 public _randomResult;
-    uint256 public _startingIndex;
-    bool public _isUriFrozen;
-    uint256 public _fee;
+    bytes32 public keyHash;
+    bool public revealed;
+    uint256 public randomResult;
+    uint256 public startingIndex;
+    bool public isUriFrozen;
+    uint256 public fee;
 
     // // metadata URI
     string private _baseTokenURI;
@@ -77,8 +76,8 @@ contract NFT is
         amountForDevs = amountForDevs_;
         // require(amountForAuctionAndDev_ <= collectionSize_, "larger collection size needed");
 
-        _keyHash = keyHash_;
-        _fee = fee_;
+        keyHash = keyHash_;
+        fee = fee_;
     }
 
     modifier callerIsUser() {
@@ -216,7 +215,7 @@ contract NFT is
     }
 
     function setBaseURI(string calldata baseURI) external onlyOwner {
-        require(!_isUriFrozen, "Token URI is frozen");
+        require(!isUriFrozen, "Token URI is frozen");
         _baseTokenURI = baseURI;
     }
 
@@ -225,33 +224,33 @@ contract NFT is
     }
 
     function freezeTokenURI() external onlyOwner {
-        require(!_isUriFrozen, "Token URI is frozen");
-        _isUriFrozen = true;
+        require(!isUriFrozen, "Token URI is frozen");
+        isUriFrozen = true;
     }
 
     function reveal() external onlyOwner {
-        require(!_revealed, "Already revealed");
-        require(_startingIndex == 0, "Already set Starting index");
+        require(!revealed, "Already revealed");
+        require(startingIndex == 0, "Already set Starting index");
 
-        require(LINK.balanceOf(address(this)) >= _fee, "Not enough LINK");
-        requestRandomness(_keyHash, _fee);
+        require(LINK.balanceOf(address(this)) >= fee, "Not enough LINK");
+        requestRandomness(keyHash, fee);
 
-        // _revealed = true;
+        // revealed = true;
     }
 
     function tokenURI(uint256 tokenId) public view virtual override returns (string memory) {
         require(_exists(tokenId), "ERC721Metadata: URI query for nonexistent token");
 
-        if (_revealed == false) {
+        if (revealed == false) {
             return _notRevealedURI;
         }
 
-        require(_startingIndex != 0, "randomness request hasn't finalized");
+        require(startingIndex != 0, "randomness request hasn't finalized");
 
         string memory baseURI = _baseURI();
         return
             bytes(baseURI).length != 0
-                ? string(abi.encodePacked(baseURI, ((tokenId + _startingIndex) % collectionSize).toString()))
+                ? string(abi.encodePacked(baseURI, ((tokenId + startingIndex) % collectionSize).toString()))
                 : "default token uri?";
     }
 
@@ -259,16 +258,16 @@ contract NFT is
      * Callback function used by VRF Coordinator
      */
     function fulfillRandomness(bytes32 requestId, uint256 randomness) internal virtual override {
-        _startingIndex = (randomness % collectionSize);
+        startingIndex = (randomness % collectionSize);
 
         // Prevent default sequence
-        if (_startingIndex == 0) {
+        if (startingIndex == 0) {
             unchecked {
-                _startingIndex = _startingIndex + 1;
+                startingIndex = startingIndex + 1;
             }
         }
 
-        _revealed = true;
+        revealed = true;
     }
 
     function withdrawMoney() external nonReentrant {
