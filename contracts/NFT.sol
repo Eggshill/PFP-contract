@@ -98,27 +98,28 @@ contract NFT is
     function preSalesMint(
         uint256 index,
         address account,
-        uint256 quantity,
+        uint256 thisTimeMint,
+        uint256 maxMint,
         bytes32[] calldata merkleProof
     ) external payable override callerIsUser {
         uint256 price = uint256(saleConfig.mintlistPrice);
         require(price != 0, "allowlist sale has not begun yet");
         // require(allowlist[msg.sender] > 0, "not eligible for allowlist mint");
-        require(totalSupply() + quantity <= collectionSize, "reached max supply");
-        require(numberMinted(msg.sender) + quantity <= maxPerAddressDuringMint, "can not mint this many");
+        require(numberMinted(msg.sender) + thisTimeMint <= maxMint, "can not mint this many");
+        require(totalSupply() + thisTimeMint <= collectionSize, "reached max supply");
 
         // Verify the merkle proof.
-        bytes32 node = keccak256(abi.encodePacked(index, account));
-        // bytes32 node = keccak256(abi.encodePacked(index, account, quantity));
+        bytes32 node = keccak256(abi.encodePacked(index, account, maxMint));
+        // bytes32 node = keccak256(abi.encodePacked(index, account));
         require(MerkleProofUpgradeable.verify(merkleProof, merkleRoot, node), "MerkleDistributor: Invalid proof.");
 
         // Mark it claimed and send the token.
         // _setClaimed(index);
         // allowlist[msg.sender]--;
-        _safeMint(msg.sender, quantity);
+        _safeMint(msg.sender, thisTimeMint);
         refundIfOver(price);
 
-        emit Claimed(index, account, quantity);
+        emit PreSalesMint(index, account, thisTimeMint, maxMint);
     }
 
     function publicSaleMint(uint256 quantity, uint256 callerPublicSaleKey) external payable callerIsUser {
