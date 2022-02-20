@@ -46,12 +46,7 @@ contract Factory is OwnableUpgradeable, ReentrancyGuardUpgradeable {
         uint256 collectionSize_,
         uint256 amountForAuctionAndDev_,
         uint256 amountForDevs_
-    ) public {
-        // string[] memory infos = new string[](3);
-        // infos[0] = _name;
-        // infos[1] = _symbol;
-        // infos[2] = _baseUri;
-
+    ) external onlyOwner {
         address clonedNFT = ClonesUpgradeable.clone(ERC721A_IMPL);
         NFT(clonedNFT).initialize(
             name_,
@@ -66,16 +61,17 @@ contract Factory is OwnableUpgradeable, ReentrancyGuardUpgradeable {
             keyHash,
             fee
         );
+        NFT(clonedNFT).devMint(amountForDevs_, msg.sender);
         NFT(clonedNFT).transferOwnership(msg.sender);
         emit CreateNFT(clonedNFT);
 
         IERC20Upgradeable(linkAddress).safeTransfer(clonedNFT, fee);
     }
 
-    function withdrawLink(address destination, uint256 amount) external onlyOwner {
-        require(destination != address(0), "DESTINATION_CANNT_BE_0_ADDRESS");
+    function withdrawLink(address destination_, uint256 amount_) external onlyOwner {
+        require(destination_ != address(0), "DESTINATION_CANNT_BE_0_ADDRESS");
         uint256 balance = IERC20Upgradeable(linkAddress).balanceOf(address(this));
-        require(balance >= amount, "AMOUNT_CANNT_MORE_THAN_BALANCE");
-        IERC20Upgradeable(linkAddress).safeTransfer(destination, amount);
+        require(balance >= amount_, "AMOUNT_CANNT_MORE_THAN_BALANCE");
+        IERC20Upgradeable(linkAddress).safeTransfer(destination_, amount_);
     }
 }

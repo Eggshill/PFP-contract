@@ -82,7 +82,7 @@ contract NFT is
         maxPerAddressDuringMint = maxBatchSize_;
         amountForAuctionAndDev = amountForAuctionAndDev_;
         amountForDevs = amountForDevs_;
-        // require(amountForAuctionAndDev_ <= collectionSize_, "larger collection size needed");
+        require(amountForAuctionAndDev_ <= collectionSize_, "larger collection size needed");
 
         keyHash = keyHash_;
         fee = fee_;
@@ -228,12 +228,12 @@ contract NFT is
     // }
 
     // For marketing etc.
-    function devMint(uint256 quantity) external onlyOwner {
+    function devMint(uint256 quantity, address devAddress) external onlyOwner {
         require(totalSupply() + quantity <= amountForDevs, "too many already minted before dev mint");
         require(quantity % maxBatchSize == 0, "can only mint a multiple of the maxBatchSize");
         uint256 numChunks = quantity / maxBatchSize;
         for (uint256 i = 0; i < numChunks; i++) {
-            _safeMint(msg.sender, maxBatchSize);
+            _safeMint(devAddress, maxBatchSize);
         }
     }
 
