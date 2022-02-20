@@ -44,7 +44,7 @@ contract Factory is OwnableUpgradeable, ReentrancyGuardUpgradeable {
         string memory contractURI_,
         uint256 maxBatchSize_,
         uint256 collectionSize_,
-        // uint256 amountForAuctionAndDev_,
+        uint256 amountForAuctionAndDev_,
         uint256 amountForDevs_
     ) public {
         // string[] memory infos = new string[](3);
@@ -59,7 +59,7 @@ contract Factory is OwnableUpgradeable, ReentrancyGuardUpgradeable {
             contractURI_,
             maxBatchSize_,
             collectionSize_,
-            // amountForAuctionAndDev_,
+            amountForAuctionAndDev_,
             amountForDevs_,
             vrfCoordinatorAddress,
             linkAddress,

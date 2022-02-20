@@ -19,16 +19,9 @@ contract NFT is
 {
     using StringsUpgradeable for uint256;
 
-    uint256 public constant AUCTION_START_PRICE = 1 ether;
-    uint256 public constant AUCTION_END_PRICE = 0.15 ether;
-    uint256 public constant AUCTION_PRICE_CURVE_LENGTH = 340 minutes;
-    uint256 public constant AUCTION_DROP_INTERVAL = 20 minutes;
-    uint256 public constant AUCTION_DROP_PER_STEP =
-        (AUCTION_START_PRICE - AUCTION_END_PRICE) / (AUCTION_PRICE_CURVE_LENGTH / AUCTION_DROP_INTERVAL);
-
     uint256 public maxPerAddressDuringMint;
     uint256 public amountForDevs;
-    // uint256 public amountForAuctionAndDev;
+    uint256 public amountForAuctionAndDev;
     bytes32 public override merkleRoot;
     bytes32 public keyHash;
     bool public revealed;
@@ -36,6 +29,12 @@ contract NFT is
     uint256 public startingIndex;
     bool public isUriFrozen;
     uint256 public fee;
+
+    // uint256 public auctionStartPrice;
+    // uint256 public auctionEndPrice;
+    // uint256 public auctionPriceCurveLength;
+    // uint256 public auctionDropInterval;
+    // uint256 public auctionDropPerStep =
 
     // // metadata URI
     string private _baseTokenURI;
@@ -49,7 +48,16 @@ contract NFT is
         uint32 publicSaleKey;
     }
 
+    struct AuctionConfig {
+        uint128 auctionStartPrice;
+        uint128 auctionEndPrice;
+        uint64 auctionPriceCurveLength;
+        uint64 auctionDropInterval;
+        uint128 auctionDropPerStep;
+    }
+
     SaleConfig public saleConfig;
+    AuctionConfig public auctionConfig;
 
     // mapping(address => uint256) public allowlist;
 
@@ -59,7 +67,7 @@ contract NFT is
         string memory contractURI_,
         uint256 maxBatchSize_,
         uint256 collectionSize_,
-        // uint256 amountForAuctionAndDev_,
+        uint256 amountForAuctionAndDev_,
         uint256 amountForDevs_,
         address vrfCoordinatorAddress_,
         address linkAddress_,
@@ -72,7 +80,7 @@ contract NFT is
         __ERC721A_init_unchained(name_, symbol_, contractURI_, maxBatchSize_, collectionSize_);
 
         maxPerAddressDuringMint = maxBatchSize_;
-        // amountForAuctionAndDev = amountForAuctionAndDev_;
+        amountForAuctionAndDev = amountForAuctionAndDev_;
         amountForDevs = amountForDevs_;
         // require(amountForAuctionAndDev_ <= collectionSize_, "larger collection size needed");
 
@@ -139,7 +147,7 @@ contract NFT is
     function auctionMint(uint256 quantity) external payable callerIsUser {
         uint256 _saleStartTime = uint256(saleConfig.auctionSaleStartTime);
         require(_saleStartTime != 0 && block.timestamp >= _saleStartTime, "sale has not started yet");
-        require(totalSupply() + quantity <= collectionSize, "reached max supply");
+        require(totalSupply() + quantity <= amountForAuctionAndDev, "reached max supply");
         require(numberMinted(msg.sender) + quantity <= maxPerAddressDuringMint, "can not mint this many");
         uint256 totalCost = getAuctionPrice(_saleStartTime) * quantity;
         _safeMint(msg.sender, quantity);
@@ -163,14 +171,15 @@ contract NFT is
     }
 
     function getAuctionPrice(uint256 _saleStartTime) public view returns (uint256) {
+        AuctionConfig memory config = auctionConfig;
         if (block.timestamp < _saleStartTime) {
-            return AUCTION_START_PRICE;
+            return config.auctionStartPrice;
         }
-        if (block.timestamp - _saleStartTime >= AUCTION_PRICE_CURVE_LENGTH) {
-            return AUCTION_END_PRICE;
+        if (block.timestamp - _saleStartTime >= config.auctionPriceCurveLength) {
+            return config.auctionEndPrice;
         } else {
-            uint256 steps = (block.timestamp - _saleStartTime) / AUCTION_DROP_INTERVAL;
-            return AUCTION_START_PRICE - (steps * AUCTION_DROP_PER_STEP);
+            uint256 steps = (block.timestamp - _saleStartTime) / config.auctionDropInterval;
+            return config.auctionStartPrice - (steps * config.auctionDropPerStep);
         }
     }
 
@@ -188,6 +197,23 @@ contract NFT is
 
     function setAuctionSaleStartTime(uint32 timestamp) external onlyOwner {
         saleConfig.auctionSaleStartTime = timestamp;
+    }
+
+    function setAuctionConfig(
+        uint128 auctionStartPrice,
+        uint128 auctionEndPrice,
+        uint64 auctionPriceCurveLength,
+        uint64 auctionDropInterval
+    ) external onlyOwner {
+        uint128 auctionDropPerStep = (auctionStartPrice - auctionEndPrice) /
+            (auctionPriceCurveLength / auctionDropInterval);
+        auctionConfig = AuctionConfig(
+            auctionStartPrice,
+            auctionEndPrice,
+            auctionPriceCurveLength,
+            auctionDropInterval,
+            auctionDropPerStep
+        );
     }
 
     function setPublicSaleKey(uint32 key) external onlyOwner {
