@@ -184,6 +184,7 @@ contract NFT is
     }
 
     function setMaxPerAddressDuringMint(uint32 quantity) external onlyOwner {
+        require(quantity < maxBatchSize, "Exceed max mint batch number");
         maxPerAddressDuringMint = quantity;
     }
 
