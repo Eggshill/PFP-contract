@@ -55,6 +55,31 @@
       {
         "indexed": true,
         "internalType": "address",
+        "name": "user",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "number",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "totalCost",
+        "type": "uint256"
+      }
+    ],
+    "name": "AuctionMint",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
         "name": "previousOwner",
         "type": "address"
       },
@@ -105,6 +130,25 @@
       {
         "indexed": true,
         "internalType": "address",
+        "name": "user",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "number",
+        "type": "uint256"
+      }
+    ],
+    "name": "PublicSaleMint",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
         "name": "from",
         "type": "address"
       },
@@ -126,20 +170,7 @@
   },
   {
     "inputs": [],
-    "name": "amountForAuctionAndDev",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "amountForDevs",
+    "name": "amountForDevsAndPlatform",
     "outputs": [
       {
         "internalType": "uint256",
@@ -196,6 +227,11 @@
         "internalType": "uint128",
         "name": "auctionDropPerStep",
         "type": "uint128"
+      },
+      {
+        "internalType": "uint32",
+        "name": "auctionSaleStartTime",
+        "type": "uint32"
       }
     ],
     "stateMutability": "view",
@@ -235,6 +271,19 @@
   },
   {
     "inputs": [],
+    "name": "balanceTreeRoot",
+    "outputs": [
+      {
+        "internalType": "bytes32",
+        "name": "",
+        "type": "bytes32"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
     "name": "contractURI",
     "outputs": [
       {
@@ -250,12 +299,22 @@
     "inputs": [
       {
         "internalType": "uint256",
-        "name": "quantity",
+        "name": "totalQuantity",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "quantityForPlatform",
         "type": "uint256"
       },
       {
         "internalType": "address",
         "name": "devAddress",
+        "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "platformAddress",
         "type": "address"
       }
     ],
@@ -268,11 +327,6 @@
     "inputs": [
       {
         "internalType": "uint64",
-        "name": "mintlistPriceWei",
-        "type": "uint64"
-      },
-      {
-        "internalType": "uint64",
         "name": "publicPriceWei",
         "type": "uint64"
       },
@@ -282,7 +336,40 @@
         "type": "uint32"
       }
     ],
-    "name": "endAuctionAndSetupNonAuctionSaleInfo",
+    "name": "endAuctionAndSetupPublicSaleInfo",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint32",
+        "name": "auctionSaleStartTime_",
+        "type": "uint32"
+      },
+      {
+        "internalType": "uint128",
+        "name": "auctionStartPrice_",
+        "type": "uint128"
+      },
+      {
+        "internalType": "uint128",
+        "name": "auctionEndPrice_",
+        "type": "uint128"
+      },
+      {
+        "internalType": "uint64",
+        "name": "auctionPriceCurveLength_",
+        "type": "uint64"
+      },
+      {
+        "internalType": "uint64",
+        "name": "auctionDropInterval_",
+        "type": "uint64"
+      }
+    ],
+    "name": "endPublicSalesAndSetupAuctionSaleInfo",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
@@ -390,7 +477,7 @@
       },
       {
         "internalType": "string",
-        "name": "contractURI_",
+        "name": "notRevealedURI_",
         "type": "string"
       },
       {
@@ -405,12 +492,7 @@
       },
       {
         "internalType": "uint256",
-        "name": "amountForAuctionAndDev_",
-        "type": "uint256"
-      },
-      {
-        "internalType": "uint256",
-        "name": "amountForDevs_",
+        "name": "amountForDevsAndPlatform_",
         "type": "uint256"
       },
       {
@@ -533,12 +615,12 @@
   },
   {
     "inputs": [],
-    "name": "merkleRoot",
+    "name": "mintlistPrice",
     "outputs": [
       {
-        "internalType": "bytes32",
+        "internalType": "uint256",
         "name": "",
-        "type": "bytes32"
+        "type": "uint256"
       }
     ],
     "stateMutability": "view",
@@ -634,6 +716,29 @@
     "name": "preSalesMint",
     "outputs": [],
     "stateMutability": "payable",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "publicSaleConfig",
+    "outputs": [
+      {
+        "internalType": "uint32",
+        "name": "publicSaleStartTime",
+        "type": "uint32"
+      },
+      {
+        "internalType": "uint64",
+        "name": "publicPrice",
+        "type": "uint64"
+      },
+      {
+        "internalType": "uint32",
+        "name": "publicSaleKey",
+        "type": "uint32"
+      }
+    ],
+    "stateMutability": "view",
     "type": "function"
   },
   {
@@ -764,39 +869,6 @@
     "type": "function"
   },
   {
-    "inputs": [],
-    "name": "saleConfig",
-    "outputs": [
-      {
-        "internalType": "uint32",
-        "name": "auctionSaleStartTime",
-        "type": "uint32"
-      },
-      {
-        "internalType": "uint32",
-        "name": "publicSaleStartTime",
-        "type": "uint32"
-      },
-      {
-        "internalType": "uint64",
-        "name": "mintlistPrice",
-        "type": "uint64"
-      },
-      {
-        "internalType": "uint64",
-        "name": "publicPrice",
-        "type": "uint64"
-      },
-      {
-        "internalType": "uint32",
-        "name": "publicSaleKey",
-        "type": "uint32"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
     "inputs": [
       {
         "internalType": "address",
@@ -810,39 +882,6 @@
       }
     ],
     "name": "setApprovalForAll",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "uint32",
-        "name": "timestamp",
-        "type": "uint32"
-      },
-      {
-        "internalType": "uint128",
-        "name": "auctionStartPrice",
-        "type": "uint128"
-      },
-      {
-        "internalType": "uint128",
-        "name": "auctionEndPrice",
-        "type": "uint128"
-      },
-      {
-        "internalType": "uint64",
-        "name": "auctionPriceCurveLength",
-        "type": "uint64"
-      },
-      {
-        "internalType": "uint64",
-        "name": "auctionDropInterval",
-        "type": "uint64"
-      }
-    ],
-    "name": "setAuctionConfig",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
@@ -1059,11 +1098,16 @@
     "inputs": [
       {
         "internalType": "bytes32",
-        "name": "newMerkleRoot",
+        "name": "newBalanceTreeRoot",
         "type": "bytes32"
+      },
+      {
+        "internalType": "uint256",
+        "name": "mintlistPriceWei",
+        "type": "uint256"
       }
     ],
-    "name": "updateMerkleRoot",
+    "name": "updatePresaleInfo",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"

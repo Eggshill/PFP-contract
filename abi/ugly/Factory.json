@@ -3,6 +3,16 @@
     "inputs": [
       {
         "internalType": "address",
+        "name": "platform_",
+        "type": "address"
+      },
+      {
+        "internalType": "uint256",
+        "name": "platformRate_",
+        "type": "uint256"
+      },
+      {
+        "internalType": "address",
         "name": "vrfCoordinatorAddress_",
         "type": "address"
       },
@@ -84,7 +94,7 @@
       },
       {
         "internalType": "string",
-        "name": "contractURI_",
+        "name": "notRevealedURI_",
         "type": "string"
       },
       {
@@ -99,18 +109,18 @@
       },
       {
         "internalType": "uint256",
-        "name": "amountForAuctionAndDev_",
+        "name": "amountForDevsAndPlatform_",
         "type": "uint256"
       },
       {
         "internalType": "uint256",
-        "name": "amountForDevs_",
+        "name": "amountForPlatform__",
         "type": "uint256"
       }
     ],
     "name": "createNFT",
     "outputs": [],
-    "stateMutability": "nonpayable",
+    "stateMutability": "payable",
     "type": "function"
   },
   {
@@ -167,7 +177,51 @@
   },
   {
     "inputs": [],
+    "name": "platform",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "platformRate",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
     "name": "renounceOwnership",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address payable",
+        "name": "platform_",
+        "type": "address"
+      },
+      {
+        "internalType": "uint256",
+        "name": "platformRate_",
+        "type": "uint256"
+      }
+    ],
+    "name": "setPlatformParms",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
@@ -211,7 +265,30 @@
         "type": "uint256"
       }
     ],
-    "name": "withdrawLink",
+    "name": "withdrawEth",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "token_",
+        "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "destination_",
+        "type": "address"
+      },
+      {
+        "internalType": "uint256",
+        "name": "amount_",
+        "type": "uint256"
+      }
+    ],
+    "name": "withdrawToken",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"

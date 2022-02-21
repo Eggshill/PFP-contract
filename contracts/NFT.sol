@@ -291,7 +291,7 @@ contract NFT is
         return
             bytes(baseURI).length != 0
                 ? string(abi.encodePacked(baseURI, ((tokenId + startingIndex) % collectionSize).toString()))
-                : "default token uri?";
+                : "baseuri not set correctly";
     }
 
     /**

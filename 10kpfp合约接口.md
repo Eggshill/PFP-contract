@@ -10,30 +10,63 @@
 
 **Description**:   通过 Factory 合约创建 10kpfp NFT 合约
 
-| Parameter               | Type    | Description                                                  |
-| ----------------------- | ------- | ------------------------------------------------------------ |
-| name_                   | string  | NFT Name                                                     |
-| symbol_                 | string  | NFT Symbol                                                   |
-| contractURI_            | string  | Contract-level metadata. URL for the storefront-level metadata for contract. |
-| maxBatchSize_           | uint256 | mint时每个地址的最大值&&每个用户最大mint数量                 |
-| collectionSize_         | uint256 | 该 nft 集合token的最大供应量                                 |
-| amountForAuctionAndDev_ | uint256 |                                                              |
-| amountForDevs_          | uint256 | dev可直接mint的数量                                          |
+| Parameter                 | Type    | Description                                                  |
+| ------------------------- | ------- | ------------------------------------------------------------ |
+| name_                     | string  | NFT Name                                                     |
+| symbol_                   | string  | NFT Symbol                                                   |
+| notRevealedURI_           | string  | notRevealedURI && Contract-level metadata. URL for the storefront-level metadata for contract |
+| maxBatchSize_             | uint256 | mint时每个地址的最大值&&每个用户最大mint数量                 |
+| collectionSize_           | uint256 | 该 nft 集合token的最大供应量                                 |
+| amountForDevsAndPlatform_ | uint256 | dev和platform可mint的数量                                    |
+| amountForPlatform__       | uint256 | 划分给platform的数量, 小于amountForDevsAndPlatform_          |
 
 
 
-### 1.2 提取剩余Link
+**Event-fields & Signature:**
 
-**Function**: `withdrawLink`
+```
+event CreateNFT(address indexed nftAddress);
 
-**MethodID**: `54b7faae`
+Text Signature: "CreateNFT(address indexed)"
+Event Hex Signature: 012b47e3f53ba43cf4658ac954147415baf5c6c94761af3bfda93607513f234a
+```
 
-**Description**:   提取 Factory 中的Link代币
+| Field      | Type    | Description         | isIndexed |
+| ---------- | ------- | ------------------- | --------- |
+| nftAddress | address | 新创建的nft Address | true      |
 
-| Parameter   | Type   | Description |
-| ----------- | ------ | ----------- |
-| destination | string | NFT Name    |
-| amount      | string | NFT Symbol  |
+
+
+
+
+### 1.2 提取剩余 ERC20 Token
+
+**Function**: `withdrawToken`
+
+**MethodID**: `01e33667`
+
+**Description**:   提取 Factory 中的 erc20 代币
+
+| Parameter    | Type    | Description       |
+| ------------ | ------- | ----------------- |
+| token_       | address | ERC20 Token Addre |
+| destination_ | string  | 目标地址          |
+| amount_      | string  | 提取数量          |
+
+
+
+### 1.3 提取剩余 ETH
+
+**Function**: `withdrawEth`
+
+**MethodID**: `1b9a91a4`
+
+**Description**:   提取 Factory 中的 erc20 代币
+
+| Parameter    | Type   | Description |
+| ------------ | ------ | ----------- |
+| destination_ | string | 目标地址    |
+| amount_      | string | 提取数量    |
 
 
 
@@ -107,19 +140,20 @@
 
 | Parameter | Type   | Description                                                  |
 | --------- | ------ | ------------------------------------------------------------ |
-| token uri | string | 未进行揭示时返回盲盒URI<br />揭示后<br />1. 已设置 baseUri 返回 baseUri + 随机数级联<br />2.未设置 baseUri 返回单独的 tokenUri (有默认值) |
+| token uri | string | 未进行揭示时返回盲盒URI<br />揭示后<br />1. 已设置 baseUri 返回 baseUri + 随机数级联<br />2.未设置 baseUri 返回默认值 |
 
-### 2.4 更新白名单
+### 2.4 更新预售白名单及价格
 
-**Function**: `updateMerkleRoot`
+**Function**: `updatePresaleInfo`
 
-**MethodID**: `4783f0ef`
+**MethodID**: `f9236ff6`
 
 **Description**:   更新 MerkleRoot 以支持白名单, 开启白名单预售
 
-| Parameter     | Type    | Description     |
-| ------------- | ------- | --------------- |
-| newMerkleRoot | bytes32 | 新的 MerkleRoot |
+| Parameter          | Type    | Description             |
+| ------------------ | ------- | ----------------------- |
+| newBalanceTreeRoot | bytes32 | 新的 MerkleRoot         |
+| mintlistPriceWei   | uint256 | 白名单预售价格 单位 wei |
 
 ### 2.5 白名单预售Mint
 
@@ -173,20 +207,20 @@ Event Hex Signature: 595aaede9de4a7851636cd278316b0c860b678208bab75fdfbb651d01c0
 
 ### 2.7 公售(荷兰拍)设置拍卖开始时间及相关参数
 
-**Function**: `setAuctionConfig`
+**Function**: `endPublicSalesAndSetupAuctionSaleInfo`
 
-**MethodID**: `ed10a6b9`
+**MethodID**: `e26d5f4a`
 
-**Description**:   荷兰拍设置
+**Description**:   设置荷兰拍参数, 并结束固定价格的公售
 
-| Parameter               | Type    | Description      |
-| ----------------------- | ------- | ---------------- |
-| timestamp               | uint32  | 开始时间戳(秒级) |
-| auctionStartPrice       | uint128 | 起始价格         |
-| auctionEndPrice         | uint128 | 结束价格         |
-| auctionPriceCurveLength | uint64  | 拍卖时长         |
-| auctionDropInterval     | uint64  | 拍卖下降间隔     |
-| signature               | bytes   | signer 签名      |
+| Parameter                | Type    | Description      |
+| ------------------------ | ------- | ---------------- |
+| auctionSaleStartTime_    | uint32  | 开始时间戳(秒级) |
+| auctionStartPrice_       | uint128 | 起始价格         |
+| auctionEndPrice_         | uint128 | 结束价格         |
+| auctionPriceCurveLength_ | uint64  | 拍卖时长         |
+| auctionDropInterval_     | uint64  | 拍卖下降间隔     |
+| signature_               | bytes   | signer 签名      |
 
 ### 
 
@@ -194,16 +228,15 @@ Event Hex Signature: 595aaede9de4a7851636cd278316b0c860b678208bab75fdfbb651d01c0
 
 **Function**: `endAuctionAndSetupNonAuctionSaleInfo`
 
-**MethodID**: `16e6e15a`
+**MethodID**: `4ef73838`
 
 **Description**:   公售(固定价格) 设置, 以及部分非荷兰拍类型的设置,  并强制关闭荷兰拍
 
-| Parameter           | Type    | Description                         |
-| ------------------- | ------- | ----------------------------------- |
-| mintlistPriceWei    | uint32  | 白名单价格, 设置为0可关闭白名单mint |
-| publicPriceWei      | uint128 | 公售固定价格                        |
-| publicSaleStartTime | uint128 | 公售开始时间                        |
-| signature           | bytes   | signer 签名                         |
+| Parameter           | Type    | Description  |
+| ------------------- | ------- | ------------ |
+| publicPriceWei      | uint128 | 公售固定价格 |
+| publicSaleStartTime | uint128 | 公售开始时间 |
+| signature           | bytes   | signer 签名  |
 
 ### 
 

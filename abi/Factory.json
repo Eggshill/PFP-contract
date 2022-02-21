@@ -1,15 +1,19 @@
 [
-  "constructor(address,address,bytes32,uint256)",
+  "constructor(address,uint256,address,address,bytes32,uint256)",
   "event CreateNFT(address indexed)",
   "event OwnershipTransferred(address indexed,address indexed)",
   "function ERC721A_IMPL() view returns (address)",
-  "function createNFT(string,string,string,uint256,uint256,uint256,uint256)",
+  "function createNFT(string,string,string,uint256,uint256,uint256,uint256) payable",
   "function fee() view returns (uint256)",
   "function keyHash() view returns (bytes32)",
   "function linkAddress() view returns (address)",
   "function owner() view returns (address)",
+  "function platform() view returns (address)",
+  "function platformRate() view returns (uint256)",
   "function renounceOwnership()",
+  "function setPlatformParms(address,uint256)",
   "function transferOwnership(address)",
   "function vrfCoordinatorAddress() view returns (address)",
-  "function withdrawLink(address,uint256)"
+  "function withdrawEth(address,uint256)",
+  "function withdrawToken(address,address,uint256)"
 ]
