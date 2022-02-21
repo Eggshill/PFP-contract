@@ -41,7 +41,7 @@ contract Factory is OwnableUpgradeable, ReentrancyGuardUpgradeable {
     function createNFT(
         string memory name_,
         string memory symbol_,
-        string memory contractURI_,
+        string memory notRevealedURI_,
         uint256 maxBatchSize_,
         uint256 collectionSize_,
         uint256 amountForAuctionAndDev_,
@@ -51,7 +51,7 @@ contract Factory is OwnableUpgradeable, ReentrancyGuardUpgradeable {
         NFT(clonedNFT).initialize(
             name_,
             symbol_,
-            contractURI_,
+            notRevealedURI_,
             maxBatchSize_,
             collectionSize_,
             amountForAuctionAndDev_,

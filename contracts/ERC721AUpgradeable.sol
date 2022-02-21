@@ -224,7 +224,7 @@ contract ERC721AUpgradeable is
     /**
      * @dev Contract-level metadata for opensea
      */
-    function contractURI() public view returns (string memory) {
+    function contractURI() public view virtual returns (string memory) {
         return _contractURI;
     }
 

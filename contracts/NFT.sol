@@ -64,7 +64,7 @@ contract NFT is
     function initialize(
         string memory name_,
         string memory symbol_,
-        string memory contractURI_,
+        string memory notRevealedURI_,
         uint256 maxBatchSize_,
         uint256 collectionSize_,
         uint256 amountForAuctionAndDev_,
@@ -77,7 +77,7 @@ contract NFT is
         __Context_init_unchained();
         __ERC165_init_unchained();
         __VRFConsumerBase_init(vrfCoordinatorAddress_, linkAddress_);
-        __ERC721A_init_unchained(name_, symbol_, contractURI_, maxBatchSize_, collectionSize_);
+        __ERC721A_init_unchained(name_, symbol_, notRevealedURI_, maxBatchSize_, collectionSize_);
 
         maxPerAddressDuringMint = maxBatchSize_;
         amountForAuctionAndDev = amountForAuctionAndDev_;
@@ -306,6 +306,10 @@ contract NFT is
     function withdrawMoney() external nonReentrant {
         (bool success, ) = owner().call{value: address(this).balance}("");
         require(success, "Transfer failed.");
+    }
+
+    function contractURI() public view override returns (string memory) {
+        return _notRevealedURI;
     }
 
     function numberMinted(address owner) public view returns (uint256) {
