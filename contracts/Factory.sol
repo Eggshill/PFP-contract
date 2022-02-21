@@ -86,14 +86,14 @@ contract Factory is OwnableUpgradeable, ReentrancyGuardUpgradeable {
     }
 
     function withdrawToken(
-        address token,
+        address token_,
         address destination_,
         uint256 amount_
     ) external onlyOwner {
         require(destination_ != address(0), "DESTINATION_CANNT_BE_0_ADDRESS");
-        uint256 balance = IERC20Upgradeable(token).balanceOf(address(this));
+        uint256 balance = IERC20Upgradeable(token_).balanceOf(address(this));
         require(balance >= amount_, "AMOUNT_CANNT_MORE_THAN_BALANCE");
-        IERC20Upgradeable(token).safeTransfer(destination_, amount_);
+        IERC20Upgradeable(token_).safeTransfer(destination_, amount_);
     }
 
     function withdrawEth(address destination_, uint256 amount_) external onlyOwner {

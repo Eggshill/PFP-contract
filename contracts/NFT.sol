@@ -21,7 +21,6 @@ contract NFT is
 
     uint256 public maxPerAddressDuringMint;
     uint256 public amountForDevsAndPlatform;
-    bytes32 public override merkleRoot;
     bytes32 public keyHash;
     bool public revealed;
     uint256 public randomResult;
@@ -29,20 +28,15 @@ contract NFT is
     bool public isUriFrozen;
     uint256 public fee;
 
-    // uint256 public auctionStartPrice;
-    // uint256 public auctionEndPrice;
-    // uint256 public auctionPriceCurveLength;
-    // uint256 public auctionDropInterval;
-    // uint256 public auctionDropPerStep =
-
-    // // metadata URI
+    // metadata URI
     string private _baseTokenURI;
     string private _notRevealedURI;
 
-    struct SaleConfig {
-        uint32 auctionSaleStartTime;
+    bytes32 public override balanceTreeRoot;
+    uint256 public mintlistPrice; // in Wei
+
+    struct PublicSaleConfig {
         uint32 publicSaleStartTime;
-        uint64 mintlistPrice;
         uint64 publicPrice;
         uint32 publicSaleKey;
     }
@@ -53,9 +47,10 @@ contract NFT is
         uint64 auctionPriceCurveLength;
         uint64 auctionDropInterval;
         uint128 auctionDropPerStep;
+        uint32 auctionSaleStartTime;
     }
 
-    SaleConfig public saleConfig;
+    PublicSaleConfig public publicSaleConfig;
     AuctionConfig public auctionConfig;
 
     // mapping(address => uint256) public allowlist;
@@ -99,7 +94,7 @@ contract NFT is
         uint256 maxMint,
         bytes32[] calldata merkleProof
     ) external payable override callerIsUser {
-        uint256 price = uint256(saleConfig.mintlistPrice);
+        uint256 price = mintlistPrice;
         require(price != 0, "allowlist sale has not begun yet");
         // require(allowlist[msg.sender] > 0, "not eligible for allowlist mint");
         require(numberMinted(msg.sender) + thisTimeMint <= maxMint, "can not mint this many");
@@ -108,7 +103,7 @@ contract NFT is
         // Verify the merkle proof.
         bytes32 node = keccak256(abi.encodePacked(index, msg.sender, maxMint));
         // bytes32 node = keccak256(abi.encodePacked(index, account));
-        require(MerkleProofUpgradeable.verify(merkleProof, merkleRoot, node), "MerkleDistributor: Invalid proof.");
+        require(MerkleProofUpgradeable.verify(merkleProof, balanceTreeRoot, node), "MerkleDistributor: Invalid proof.");
 
         // Mark it claimed and send the token.
         // _setClaimed(index);
@@ -120,7 +115,7 @@ contract NFT is
     }
 
     function publicSaleMint(uint256 quantity, uint256 callerPublicSaleKey) external payable callerIsUser {
-        SaleConfig memory config = saleConfig;
+        PublicSaleConfig memory config = publicSaleConfig;
         uint256 publicSaleKey = uint256(config.publicSaleKey);
         uint256 publicPrice = uint256(config.publicPrice);
         uint256 publicSaleStartTime = uint256(config.publicSaleStartTime);
@@ -136,7 +131,7 @@ contract NFT is
     }
 
     function auctionMint(uint256 quantity) external payable callerIsUser {
-        uint256 _saleStartTime = uint256(saleConfig.auctionSaleStartTime);
+        uint256 _saleStartTime = uint256(auctionConfig.auctionSaleStartTime);
         require(_saleStartTime != 0 && block.timestamp >= _saleStartTime, "sale has not started yet");
         require(totalSupply() + quantity <= maxBatchSize - amountForDevsAndPlatform, "reached max supply");
         require(numberMinted(msg.sender) + quantity <= maxPerAddressDuringMint, "can not mint this many");
@@ -181,43 +176,44 @@ contract NFT is
         maxPerAddressDuringMint = quantity;
     }
 
-    function updateMerkleRoot(bytes32 newMerkleRoot) external onlyOwner {
-        merkleRoot = newMerkleRoot;
+    function updatePresaleInfo(bytes32 newBalanceTreeRoot, uint256 mintlistPriceWei) external onlyOwner {
+        balanceTreeRoot = newBalanceTreeRoot;
+        mintlistPrice = mintlistPriceWei;
     }
 
-    function endAuctionAndSetupNonAuctionSaleInfo(
-        uint64 mintlistPriceWei,
-        uint64 publicPriceWei,
-        uint32 publicSaleStartTime
-    ) external onlyOwner {
-        saleConfig = SaleConfig(0, publicSaleStartTime, mintlistPriceWei, publicPriceWei, saleConfig.publicSaleKey);
+    function endAuctionAndSetupPublicSaleInfo(uint64 publicPriceWei, uint32 publicSaleStartTime) external onlyOwner {
+        delete auctionConfig;
+
+        publicSaleConfig = PublicSaleConfig(publicSaleStartTime, publicPriceWei, publicSaleConfig.publicSaleKey);
     }
 
     // function setAuctionSaleStartTime(uint32 timestamp) external onlyOwner {
-    //     saleConfig.auctionSaleStartTime = timestamp;
+    //     publicSaleConfig.auctionSaleStartTime = timestamp;
     // }
 
-    function setAuctionConfig(
-        uint32 timestamp,
-        uint128 auctionStartPrice,
-        uint128 auctionEndPrice,
-        uint64 auctionPriceCurveLength,
-        uint64 auctionDropInterval
+    function endPublicSalesAndSetupAuctionSaleInfo(
+        uint32 auctionSaleStartTime_,
+        uint128 auctionStartPrice_,
+        uint128 auctionEndPrice_,
+        uint64 auctionPriceCurveLength_,
+        uint64 auctionDropInterval_
     ) external onlyOwner {
-        saleConfig.auctionSaleStartTime = timestamp;
-        uint128 auctionDropPerStep = (auctionStartPrice - auctionEndPrice) /
-            (auctionPriceCurveLength / auctionDropInterval);
+        delete publicSaleConfig;
+
+        uint128 auctionDropPerStep = (auctionStartPrice_ - auctionEndPrice_) /
+            (auctionPriceCurveLength_ / auctionDropInterval_);
         auctionConfig = AuctionConfig(
-            auctionStartPrice,
-            auctionEndPrice,
-            auctionPriceCurveLength,
-            auctionDropInterval,
-            auctionDropPerStep
+            auctionStartPrice_,
+            auctionEndPrice_,
+            auctionPriceCurveLength_,
+            auctionDropInterval_,
+            auctionDropPerStep,
+            auctionSaleStartTime_
         );
     }
 
     function setPublicSaleKey(uint32 key) external onlyOwner {
-        saleConfig.publicSaleKey = key;
+        publicSaleConfig.publicSaleKey = key;
     }
 
     // function seedAllowlist(address[] memory addresses, uint256[] memory numSlots) external onlyOwner {

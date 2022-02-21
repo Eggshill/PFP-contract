@@ -4,7 +4,7 @@ pragma solidity ^0.8.0;
 
 interface IMerkleDistributor {
     // Returns the merkle root of the merkle tree containing account balances available to claim.
-    function merkleRoot() external view returns (bytes32);
+    function balanceTreeRoot() external view returns (bytes32);
 
     // Claim the given amount of the token to the given address. Reverts if the inputs are invalid.
     function preSalesMint(
