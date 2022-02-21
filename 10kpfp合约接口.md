@@ -4,11 +4,11 @@
 
 ### 1.1 创建 10kpfp NFT合约
 
-**Function: **`createNFT`
+**Function**: `createNFT`
 
-**MethodID: **`f5699b81`
+**MethodID**: `f5699b81`
 
-**Description: **  通过 Factory 合约创建 10kpfp NFT 合约
+**Description**:   通过 Factory 合约创建 10kpfp NFT 合约
 
 | Parameter               | Type    | Description                                                  |
 | ----------------------- | ------- | ------------------------------------------------------------ |
@@ -24,11 +24,11 @@
 
 ### 1.2 提取剩余Link
 
-**Function: **`withdrawLink`
+**Function**: `withdrawLink`
 
-**MethodID: **`54b7faae`
+**MethodID**: `54b7faae`
 
-**Description: **  提取 Factory 中的Link代币
+**Description**:   提取 Factory 中的Link代币
 
 | Parameter   | Type   | Description |
 | ----------- | ------ | ----------- |
@@ -41,11 +41,11 @@
 
 ### 2.1 设置 Base URI
 
-**Function: **`setBaseURI`
+**Function**: `setBaseURI`
 
-**MethodID: **`55f804b3`
+**MethodID**: `55f804b3`
 
-**Description: **  设置 NFT Base URI
+**Description**:   设置 NFT Base URI
 
 | Parameter | Type   | Description |
 | --------- | ------ | ----------- |
@@ -55,11 +55,11 @@
 
 ### 2.2 设置盲盒URI
 
-**Function: **`setNotRevealedURI`
+**Function**: `setNotRevealedURI`
 
-**MethodID: **`f2c4ce1e`
+**MethodID**: `f2c4ce1e`
 
-**Description: **  设置 NFT Base URI
+**Description**:   设置 NFT Base URI
 
 | Parameter      | Type   | Description |
 | -------------- | ------ | ----------- |
@@ -67,11 +67,11 @@
 
 ### 2.3 冻结 Token URI
 
-**Function: **`freezeTokenURI`
+**Function**: `freezeTokenURI`
 
-**MethodID: **`ba4695fd`
+**MethodID**: `ba4695fd`
 
-**Description: **  冻结 Token URI
+**Description**:   冻结 Token URI
 
 | Parameter | Type | Description |
 | --------- | ---- | ----------- |
@@ -79,11 +79,11 @@
 
 ### 2.4 揭示盲盒URI
 
-**Function: **`reveal`
+**Function**: `reveal`
 
-**MethodID: **`a475b5dd`
+**MethodID**: `a475b5dd`
 
-**Description: ** 揭示盲盒URI
+**Description**:  揭示盲盒URI
 
 | Parameter | Type | Description |
 | --------- | ---- | ----------- |
@@ -91,19 +91,19 @@
 
 ### 2.4 查询 Token URI
 
-**Function: **`tokenURI`
+**Function**: `tokenURI`
 
-**MethodID: ** `c87b56dd`
+**MethodID**:  `c87b56dd`
 
 **Type:  ** `Read`
 
-**Description: **查询某个指定 ID 的 Token URI
+**Description**: 查询某个指定 ID 的 Token URI
 
 | Parameter | Type    | Description   |
 | --------- | ------- | ------------- |
 | tokenId   | uint256 | 指定 Token ID |
 
-**Return Value: **
+**Return Value**: 
 
 | Parameter | Type   | Description                                                  |
 | --------- | ------ | ------------------------------------------------------------ |
@@ -111,11 +111,11 @@
 
 ### 2.4 更新白名单
 
-**Function: **`updateMerkleRoot`
+**Function**: `updateMerkleRoot`
 
-**MethodID: **`4783f0ef`
+**MethodID**: `4783f0ef`
 
-**Description: **  更新 MerkleRoot 以支持白名单, 开启白名单预售
+**Description**:   更新 MerkleRoot 以支持白名单, 开启白名单预售
 
 | Parameter     | Type    | Description     |
 | ------------- | ------- | --------------- |
@@ -123,11 +123,11 @@
 
 ### 2.5 白名单预售Mint
 
-**Function: **`preSalesMint`
+**Function**: `preSalesMint`
 
-**MethodID: **`787fd082`
+**MethodID**: `787fd082`
 
-**Description: **  白名单预售Mint方法
+**Description**:   白名单预售Mint方法
 
 | Parameter    | Type      | Description               |
 | ------------ | --------- | ------------------------- |
@@ -157,11 +157,11 @@ Event Hex Signature: 595aaede9de4a7851636cd278316b0c860b678208bab75fdfbb651d01c0
 
 ### 2.6 设置公售公钥
 
-**Function: **`setPublicSaleSigner`
+**Function**: `setPublicSaleSigner`
 
-**MethodID: **`90028083`
+**MethodID**: `90028083`
 
-**Description: **  设置公售公钥
+**Description**:   设置公售公钥
 
 | Parameter     | Type    | Description    |
 | ------------- | ------- | -------------- |
@@ -173,11 +173,11 @@ Event Hex Signature: 595aaede9de4a7851636cd278316b0c860b678208bab75fdfbb651d01c0
 
 ### 2.7 公售(荷兰拍)设置拍卖开始时间及相关参数
 
-**Function: **`setAuctionConfig`
+**Function**: `setAuctionConfig`
 
-**MethodID: **`ed10a6b9`
+**MethodID**: `ed10a6b9`
 
-**Description: **  荷兰拍设置
+**Description**:   荷兰拍设置
 
 | Parameter               | Type    | Description      |
 | ----------------------- | ------- | ---------------- |
@@ -192,11 +192,11 @@ Event Hex Signature: 595aaede9de4a7851636cd278316b0c860b678208bab75fdfbb651d01c0
 
 ### 2.8 公售(固定价格) 设置 && 非拍卖销售设置
 
-**Function: **`endAuctionAndSetupNonAuctionSaleInfo`
+**Function**: `endAuctionAndSetupNonAuctionSaleInfo`
 
-**MethodID: **`16e6e15a`
+**MethodID**: `16e6e15a`
 
-**Description: **  公售(固定价格) 设置, 以及部分非荷兰拍类型的设置,  并强制关闭荷兰拍
+**Description**:   公售(固定价格) 设置, 以及部分非荷兰拍类型的设置,  并强制关闭荷兰拍
 
 | Parameter           | Type    | Description                         |
 | ------------------- | ------- | ----------------------------------- |
