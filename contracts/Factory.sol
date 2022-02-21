@@ -27,6 +27,8 @@ contract Factory is OwnableUpgradeable, ReentrancyGuardUpgradeable {
     event CreateNFT(address indexed nftAddress);
 
     constructor(
+        address platform_,
+        uint256 platformRate_,
         address vrfCoordinatorAddress_,
         address linkAddress_,
         bytes32 keyHash_,
@@ -34,6 +36,9 @@ contract Factory is OwnableUpgradeable, ReentrancyGuardUpgradeable {
     ) {
         __Ownable_init();
         ERC721A_IMPL = address(new NFT());
+
+        platform = platform_;
+        platformRate = platformRate_;
 
         vrfCoordinatorAddress = vrfCoordinatorAddress_;
         linkAddress = linkAddress_;
@@ -50,7 +55,7 @@ contract Factory is OwnableUpgradeable, ReentrancyGuardUpgradeable {
         uint256 amountForDevsAndPlatform_,
         uint256 amountForPlatform__
     ) public payable {
-        require(amountForPlatform__ < amountForDevsAndPlatform_, "too much for platform");
+        require(amountForPlatform__ < amountForDevsAndPlatform_, "TOO MUCH FOR PLATFORM");
 
         address clonedNFT = ClonesUpgradeable.clone(ERC721A_IMPL);
         NFT(clonedNFT).initialize(
@@ -73,17 +78,28 @@ contract Factory is OwnableUpgradeable, ReentrancyGuardUpgradeable {
     }
 
     function setPlatformParms(address payable platform_, uint256 platformRate_) public onlyOwner {
-        require(platform_ != address(0), "Curve: platform address is zero.");
-        require(platformRate_ < 100, "Curve: wrong rate");
+        require(platform_ != address(0), "PLATFORM ADDRESS IS ZERO");
+        require(platformRate_ < 100, "WRONG RATE");
 
         platform = platform_;
         platformRate = platformRate_;
     }
 
-    function withdrawLink(address destination_, uint256 amount_) external onlyOwner {
+    function withdrawToken(
+        address token,
+        address destination_,
+        uint256 amount_
+    ) external onlyOwner {
         require(destination_ != address(0), "DESTINATION_CANNT_BE_0_ADDRESS");
-        uint256 balance = IERC20Upgradeable(linkAddress).balanceOf(address(this));
+        uint256 balance = IERC20Upgradeable(token).balanceOf(address(this));
         require(balance >= amount_, "AMOUNT_CANNT_MORE_THAN_BALANCE");
-        IERC20Upgradeable(linkAddress).safeTransfer(destination_, amount_);
+        IERC20Upgradeable(token).safeTransfer(destination_, amount_);
+    }
+
+    function withdrawEth(address destination_, uint256 amount_) external onlyOwner {
+        require(destination_ != address(0), "DESTINATION_CANNT_BE_0_ADDRESS");
+
+        (bool success, ) = destination_.call{value: amount_}("");
+        require(success, "Failed to send Ether");
     }
 }
