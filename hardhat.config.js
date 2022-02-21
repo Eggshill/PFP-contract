@@ -94,12 +94,19 @@ module.exports = {
     runOnCompile: true,
     disambiguatePaths: false,
   },
-  abiExporter: {
-    path: './abi/',
-    clear: true,
-    flat: true,
-    only: [],
-    spacing: 2,
-    pretty: false,
-  },
+  abiExporter: [
+    {
+      path: './abi/',
+      clear: true,
+      flat: true,
+      only: [],
+      spacing: 2,
+      pretty: true,
+    },
+    {
+      path: './abi/ugly',
+      clear: true,
+      pretty: false,
+    },
+  ],
 }

@@ -105,7 +105,6 @@ contract NFT is
 
     function preSalesMint(
         uint256 index,
-        address account,
         uint256 thisTimeMint,
         uint256 maxMint,
         bytes32[] calldata merkleProof
@@ -117,7 +116,7 @@ contract NFT is
         require(totalSupply() + thisTimeMint <= collectionSize, "reached max supply");
 
         // Verify the merkle proof.
-        bytes32 node = keccak256(abi.encodePacked(index, account, maxMint));
+        bytes32 node = keccak256(abi.encodePacked(index, msg.sender, maxMint));
         // bytes32 node = keccak256(abi.encodePacked(index, account));
         require(MerkleProofUpgradeable.verify(merkleProof, merkleRoot, node), "MerkleDistributor: Invalid proof.");
 
@@ -127,7 +126,7 @@ contract NFT is
         _safeMint(msg.sender, thisTimeMint);
         refundIfOver(price);
 
-        emit PreSalesMint(index, account, thisTimeMint, maxMint);
+        emit PreSalesMint(index, msg.sender, thisTimeMint, maxMint);
     }
 
     function publicSaleMint(uint256 quantity, uint256 callerPublicSaleKey) external payable callerIsUser {
@@ -188,6 +187,10 @@ contract NFT is
         maxPerAddressDuringMint = quantity;
     }
 
+    function updateMerkleRoot(bytes32 newMerkleRoot) external onlyOwner {
+        merkleRoot = newMerkleRoot;
+    }
+
     function endAuctionAndSetupNonAuctionSaleInfo(
         uint64 mintlistPriceWei,
         uint64 publicPriceWei,
@@ -196,16 +199,18 @@ contract NFT is
         saleConfig = SaleConfig(0, publicSaleStartTime, mintlistPriceWei, publicPriceWei, saleConfig.publicSaleKey);
     }
 
-    function setAuctionSaleStartTime(uint32 timestamp) external onlyOwner {
-        saleConfig.auctionSaleStartTime = timestamp;
-    }
+    // function setAuctionSaleStartTime(uint32 timestamp) external onlyOwner {
+    //     saleConfig.auctionSaleStartTime = timestamp;
+    // }
 
     function setAuctionConfig(
+        uint32 timestamp,
         uint128 auctionStartPrice,
         uint128 auctionEndPrice,
         uint64 auctionPriceCurveLength,
         uint64 auctionDropInterval
     ) external onlyOwner {
+        saleConfig.auctionSaleStartTime = timestamp;
         uint128 auctionDropPerStep = (auctionStartPrice - auctionEndPrice) /
             (auctionPriceCurveLength / auctionDropInterval);
         auctionConfig = AuctionConfig(
