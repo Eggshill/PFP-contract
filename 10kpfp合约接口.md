@@ -19,6 +19,7 @@
 | collectionSize_           | uint256 | 该 nft 集合token的最大供应量                                 |
 | amountForDevsAndPlatform_ | uint256 | dev和platform可mint的数量                                    |
 | amountForPlatform__       | uint256 | 划分给platform的数量, 小于amountForDevsAndPlatform_          |
+| signer_                   | address | NFT mint所需的签名公钥                                       |
 
 
 
@@ -169,6 +170,8 @@ Event Hex Signature: 012b47e3f53ba43cf4658ac954147415baf5c6c94761af3bfda93607513
 | thisTimeMint | uint256   | 本次mint数量              |
 | maxMint      | uint256   | 该用户白名单最大mint数量  |
 | merkleProof  | bytes32[] | merkleProof 验证路径Proof |
+| salt         | string    | 盐值 随机 定期更换        |
+| signature    | bytes     | 签名结果                  |
 | eth amount   | eth       | 发送的eth数量             |
 
 **Event-fields & Signature:**
@@ -189,19 +192,19 @@ Event Hex Signature: 595aaede9de4a7851636cd278316b0c860b678208bab75fdfbb651d01c0
 
 
 
-### 2.6 设置公售公钥
+### 2.6 设置mint所需公钥
 
-**Function**: `setPublicSaleSigner`
+**Function**: `setSigner`
 
-**MethodID**: `90028083`
+**MethodID**: `6c19e783`
 
-**Description**:   设置公售公钥
+**Description**:   设置 mint 公钥地址
 
-| Parameter     | Type    | Description    |
-| ------------- | ------- | -------------- |
-| signerAddress | Address | Signer公钥地址 |
+| Parameter | Type    | Description       |
+| --------- | ------- | ----------------- |
+| signer_   | Address | mint 所需公钥地址 |
 
-### 
+
 
 
 
@@ -220,23 +223,81 @@ Event Hex Signature: 595aaede9de4a7851636cd278316b0c860b678208bab75fdfbb651d01c0
 | auctionEndPrice_         | uint128 | 结束价格         |
 | auctionPriceCurveLength_ | uint64  | 拍卖时长         |
 | auctionDropInterval_     | uint64  | 拍卖下降间隔     |
-| signature_               | bytes   | signer 签名      |
 
-### 
 
-### 2.8 公售(固定价格) 设置 && 非拍卖销售设置
 
-**Function**: `endAuctionAndSetupNonAuctionSaleInfo`
+### 2.8 公售(荷兰拍) Mint 
+
+**Function**: `auctionMint`
+
+**MethodID**: `e26d5f4a`
+
+**Description**:   荷兰拍 mint 方法
+
+| Parameter | Type    | Description      |
+| --------- | ------- | ---------------- |
+| quantity  | uint32  | 开始时间戳(秒级) |
+| salt      | uint128 | 起始价格         |
+| signature | uint128 | 结束价格         |
+
+**Event-fields & Signature:**
+
+```
+event AuctionMint(address indexed user, uint256 number, uint256 totalCost);
+
+Text Signature: "AuctionMint(address indexed,uint256,uint256)"
+Event Hex Signature: dec21920125339eda7ee3bad222a20df6041eb3a6dcef59e716c87bbbf485360
+```
+
+| Field     | Type    | Description   | isIndexed |
+| --------- | ------- | ------------- | --------- |
+| user      | address | mint 用户地址 | true      |
+| number    | uint256 | 用户mint数量  | false     |
+| totalCost | uint256 | 总价          | false     |
+
+
+
+### 2.9 公售(固定价格) 设置 && 非拍卖销售设置
+
+**Function**: `endAuctionAndSetupPublicSaleInfo`
 
 **MethodID**: `4ef73838`
 
-**Description**:   公售(固定价格) 设置, 以及部分非荷兰拍类型的设置,  并强制关闭荷兰拍
+**Description**:   公售(固定价格) 参数设置, 并强制关闭荷兰拍
 
 | Parameter           | Type    | Description  |
 | ------------------- | ------- | ------------ |
 | publicPriceWei      | uint128 | 公售固定价格 |
 | publicSaleStartTime | uint128 | 公售开始时间 |
-| signature           | bytes   | signer 签名  |
 
-### 
+
+
+### 2.10 公售(固定价格) 设置 && 非拍卖销售设置
+
+**Function**: `publicSaleMint`
+
+**MethodID**: `299c8989`
+
+**Description**:   公售(固定价格)  mint 方法
+
+| Parameter | Type    | Description        |
+| --------- | ------- | ------------------ |
+| quantity  | uint128 | 公售固定价格       |
+| salt      | string  | 盐值 随机 定期更换 |
+| signature | bytes   | 签名结果           |
+
+**Event-fields & Signature:**
+
+```
+event PublicSaleMint(address indexed user, uint256 number, uint256 totalCost);
+
+Text Signature: "PublicSaleMint(address indexed,uint256,uint256)"
+Event Hex Signature: ecd35b7ff452057eb5131aa07239d81231e8728161ec2dc0ff51c92625f1f8ba
+```
+
+| Field     | Type    | Description   | isIndexed |
+| --------- | ------- | ------------- | --------- |
+| user      | address | mint 用户地址 | true      |
+| number    | uint256 | 用户mint数量  | false     |
+| totalCost | uint256 | 总价          | false     |
 

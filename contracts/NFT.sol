@@ -58,7 +58,7 @@ contract NFT is
     // mapping(address => uint256) public allowlist;
 
     event PreSalesMint(uint256 indexed index, address indexed account, uint256 amount, uint256 maxMint);
-    event PublicSaleMint(address indexed user, uint256 number);
+    event PublicSaleMint(address indexed user, uint256 number, uint256 totalCost);
     event AuctionMint(address indexed user, uint256 number, uint256 totalCost);
 
     function initialize(
@@ -139,7 +139,7 @@ contract NFT is
         _safeMint(msg.sender, quantity);
         refundIfOver(publicPrice * quantity);
 
-        emit PublicSaleMint(msg.sender, quantity);
+        emit PublicSaleMint(msg.sender, quantity, publicPrice * quantity);
     }
 
     function auctionMint(

@@ -116,6 +116,11 @@
         "internalType": "uint256",
         "name": "amountForPlatform__",
         "type": "uint256"
+      },
+      {
+        "internalType": "address",
+        "name": "signer_",
+        "type": "address"
       }
     ],
     "name": "createNFT",

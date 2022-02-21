@@ -138,6 +138,12 @@
         "internalType": "uint256",
         "name": "number",
         "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "totalCost",
+        "type": "uint256"
       }
     ],
     "name": "PublicSaleMint",
@@ -243,6 +249,16 @@
         "internalType": "uint256",
         "name": "quantity",
         "type": "uint256"
+      },
+      {
+        "internalType": "string",
+        "name": "salt",
+        "type": "string"
+      },
+      {
+        "internalType": "bytes",
+        "name": "signature",
+        "type": "bytes"
       }
     ],
     "name": "auctionMint",
@@ -497,6 +513,11 @@
       },
       {
         "internalType": "address",
+        "name": "signer_",
+        "type": "address"
+      },
+      {
+        "internalType": "address",
         "name": "vrfCoordinatorAddress_",
         "type": "address"
       },
@@ -550,11 +571,6 @@
       {
         "internalType": "uint256",
         "name": "publicPriceWei",
-        "type": "uint256"
-      },
-      {
-        "internalType": "uint256",
-        "name": "publicSaleKey",
         "type": "uint256"
       },
       {
@@ -711,6 +727,16 @@
         "internalType": "bytes32[]",
         "name": "merkleProof",
         "type": "bytes32[]"
+      },
+      {
+        "internalType": "string",
+        "name": "salt",
+        "type": "string"
+      },
+      {
+        "internalType": "bytes",
+        "name": "signature",
+        "type": "bytes"
       }
     ],
     "name": "preSalesMint",
@@ -728,14 +754,9 @@
         "type": "uint32"
       },
       {
-        "internalType": "uint64",
+        "internalType": "uint128",
         "name": "publicPrice",
-        "type": "uint64"
-      },
-      {
-        "internalType": "uint32",
-        "name": "publicSaleKey",
-        "type": "uint32"
+        "type": "uint128"
       }
     ],
     "stateMutability": "view",
@@ -749,9 +770,14 @@
         "type": "uint256"
       },
       {
-        "internalType": "uint256",
-        "name": "callerPublicSaleKey",
-        "type": "uint256"
+        "internalType": "string",
+        "name": "salt",
+        "type": "string"
+      },
+      {
+        "internalType": "bytes",
+        "name": "signature",
+        "type": "bytes"
       }
     ],
     "name": "publicSaleMint",
@@ -928,14 +954,27 @@
   {
     "inputs": [
       {
-        "internalType": "uint32",
-        "name": "key",
-        "type": "uint32"
+        "internalType": "address",
+        "name": "signer_",
+        "type": "address"
       }
     ],
-    "name": "setPublicSaleKey",
+    "name": "setSigner",
     "outputs": [],
     "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "signer",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
     "type": "function"
   },
   {
@@ -1110,6 +1149,35 @@
     "name": "updatePresaleInfo",
     "outputs": [],
     "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "string",
+        "name": "_salt",
+        "type": "string"
+      },
+      {
+        "internalType": "address",
+        "name": "_userAddress",
+        "type": "address"
+      },
+      {
+        "internalType": "bytes",
+        "name": "signature",
+        "type": "bytes"
+      }
+    ],
+    "name": "verifySignature",
+    "outputs": [
+      {
+        "internalType": "bool",
+        "name": "",
+        "type": "bool"
+      }
+    ],
+    "stateMutability": "view",
     "type": "function"
   },
   {
