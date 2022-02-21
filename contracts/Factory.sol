@@ -44,7 +44,6 @@ contract Factory is OwnableUpgradeable, ReentrancyGuardUpgradeable {
         string memory notRevealedURI_,
         uint256 maxBatchSize_,
         uint256 collectionSize_,
-        uint256 amountForAuctionAndDev_,
         uint256 amountForDevs_
     ) external onlyOwner {
         address clonedNFT = ClonesUpgradeable.clone(ERC721A_IMPL);
@@ -54,7 +53,6 @@ contract Factory is OwnableUpgradeable, ReentrancyGuardUpgradeable {
             notRevealedURI_,
             maxBatchSize_,
             collectionSize_,
-            amountForAuctionAndDev_,
             amountForDevs_,
             vrfCoordinatorAddress,
             linkAddress,

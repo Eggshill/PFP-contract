@@ -21,7 +21,6 @@ contract NFT is
 
     uint256 public maxPerAddressDuringMint;
     uint256 public amountForDevs;
-    uint256 public amountForAuctionAndDev;
     bytes32 public override merkleRoot;
     bytes32 public keyHash;
     bool public revealed;
@@ -67,7 +66,6 @@ contract NFT is
         string memory notRevealedURI_,
         uint256 maxBatchSize_,
         uint256 collectionSize_,
-        uint256 amountForAuctionAndDev_,
         uint256 amountForDevs_,
         address vrfCoordinatorAddress_,
         address linkAddress_,
@@ -80,9 +78,7 @@ contract NFT is
         __ERC721A_init_unchained(name_, symbol_, notRevealedURI_, maxBatchSize_, collectionSize_);
 
         maxPerAddressDuringMint = maxBatchSize_;
-        amountForAuctionAndDev = amountForAuctionAndDev_;
         amountForDevs = amountForDevs_;
-        require(amountForAuctionAndDev_ <= collectionSize_, "larger collection size needed");
 
         keyHash = keyHash_;
         fee = fee_;
@@ -146,7 +142,7 @@ contract NFT is
     function auctionMint(uint256 quantity) external payable callerIsUser {
         uint256 _saleStartTime = uint256(saleConfig.auctionSaleStartTime);
         require(_saleStartTime != 0 && block.timestamp >= _saleStartTime, "sale has not started yet");
-        require(totalSupply() + quantity <= amountForAuctionAndDev, "reached max supply");
+        require(totalSupply() + quantity <= maxBatchSize - amountForDevs, "reached max supply");
         require(numberMinted(msg.sender) + quantity <= maxPerAddressDuringMint, "can not mint this many");
         uint256 totalCost = getAuctionPrice(_saleStartTime) * quantity;
         _safeMint(msg.sender, quantity);
