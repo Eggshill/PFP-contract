@@ -13,7 +13,4 @@ interface IMerkleDistributor {
         uint256 maxMint,
         bytes32[] calldata merkleProof
     ) external payable;
-
-    // This event is triggered whenever a call to #claim succeeds.
-    event PreSalesMint(uint256 indexed index, address indexed account, uint256 amount, uint256 maxMint);
 }

@@ -60,6 +60,10 @@ contract NFT is
 
     // mapping(address => uint256) public allowlist;
 
+    event PreSalesMint(uint256 indexed index, address indexed account, uint256 amount, uint256 maxMint);
+    event PublicSaleMint(address indexed user, uint256 number);
+    event AuctionMint(address indexed user, uint256 number, uint256 totalCost);
+
     function initialize(
         string memory name_,
         string memory symbol_,
@@ -127,6 +131,8 @@ contract NFT is
         require(numberMinted(msg.sender) + quantity <= maxPerAddressDuringMint, "can not mint this many");
         _safeMint(msg.sender, quantity);
         refundIfOver(publicPrice * quantity);
+
+        emit PublicSaleMint(msg.sender, quantity);
     }
 
     function auctionMint(uint256 quantity) external payable callerIsUser {
@@ -137,6 +143,8 @@ contract NFT is
         uint256 totalCost = getAuctionPrice(_saleStartTime) * quantity;
         _safeMint(msg.sender, quantity);
         refundIfOver(totalCost);
+
+        emit AuctionMint(msg.sender, quantity, totalCost);
     }
 
     function refundIfOver(uint256 price) private {
