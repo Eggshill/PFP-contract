@@ -53,7 +53,8 @@ contract Factory is OwnableUpgradeable, ReentrancyGuardUpgradeable {
         uint256 maxBatchSize_,
         uint256 collectionSize_,
         uint256 amountForDevsAndPlatform_,
-        uint256 amountForPlatform__
+        uint256 amountForPlatform__,
+        address signer_
     ) public payable {
         require(amountForPlatform__ < amountForDevsAndPlatform_, "TOO MUCH FOR PLATFORM");
 
@@ -65,6 +66,7 @@ contract Factory is OwnableUpgradeable, ReentrancyGuardUpgradeable {
             maxBatchSize_,
             collectionSize_,
             amountForDevsAndPlatform_,
+            signer_,
             vrfCoordinatorAddress,
             linkAddress,
             keyHash,

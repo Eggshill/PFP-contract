@@ -9,6 +9,7 @@ import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/StringsUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/cryptography/MerkleProofUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/utils/cryptography/ECDSAUpgradeable.sol";
 
 contract NFT is
     VRFConsumerBaseUpgradeable,
@@ -18,6 +19,7 @@ contract NFT is
     IMerkleDistributor
 {
     using StringsUpgradeable for uint256;
+    using ECDSAUpgradeable for bytes32;
 
     uint256 public maxPerAddressDuringMint;
     uint256 public amountForDevsAndPlatform;
@@ -32,13 +34,13 @@ contract NFT is
     string private _baseTokenURI;
     string private _notRevealedURI;
 
+    address public signer;
     bytes32 public override balanceTreeRoot;
     uint256 public mintlistPrice; // in Wei
 
     struct PublicSaleConfig {
         uint32 publicSaleStartTime;
-        uint64 publicPrice;
-        uint32 publicSaleKey;
+        uint128 publicPrice;
     }
 
     struct AuctionConfig {
@@ -66,6 +68,7 @@ contract NFT is
         uint256 maxBatchSize_,
         uint256 collectionSize_,
         uint256 amountForDevsAndPlatform_,
+        address signer_,
         address vrfCoordinatorAddress_,
         address linkAddress_,
         bytes32 keyHash_,
@@ -79,6 +82,7 @@ contract NFT is
         maxPerAddressDuringMint = maxBatchSize_;
         amountForDevsAndPlatform = amountForDevsAndPlatform_;
 
+        signer = signer_;
         keyHash = keyHash_;
         fee = fee_;
     }
@@ -92,8 +96,12 @@ contract NFT is
         uint256 index,
         uint256 thisTimeMint,
         uint256 maxMint,
-        bytes32[] calldata merkleProof
+        bytes32[] calldata merkleProof,
+        string calldata salt,
+        bytes calldata signature
     ) external payable override callerIsUser {
+        require(verifySignature(salt, msg.sender, signature), "called with incorrect signature");
+
         uint256 price = mintlistPrice;
         require(price != 0, "allowlist sale has not begun yet");
         // require(allowlist[msg.sender] > 0, "not eligible for allowlist mint");
@@ -114,14 +122,18 @@ contract NFT is
         emit PreSalesMint(index, msg.sender, thisTimeMint, maxMint);
     }
 
-    function publicSaleMint(uint256 quantity, uint256 callerPublicSaleKey) external payable callerIsUser {
+    function publicSaleMint(
+        uint256 quantity,
+        string calldata salt,
+        bytes calldata signature
+    ) external payable callerIsUser {
+        require(verifySignature(salt, msg.sender, signature), "called with incorrect signature");
+
         PublicSaleConfig memory config = publicSaleConfig;
-        uint256 publicSaleKey = uint256(config.publicSaleKey);
         uint256 publicPrice = uint256(config.publicPrice);
         uint256 publicSaleStartTime = uint256(config.publicSaleStartTime);
-        require(publicSaleKey == callerPublicSaleKey, "called with incorrect public sale key");
 
-        require(isPublicSaleOn(publicPrice, publicSaleKey, publicSaleStartTime), "public sale has not begun yet");
+        require(isPublicSaleOn(publicPrice, publicSaleStartTime), "public sale has not begun yet");
         require(totalSupply() + quantity <= collectionSize, "reached max supply");
         require(numberMinted(msg.sender) + quantity <= maxPerAddressDuringMint, "can not mint this many");
         _safeMint(msg.sender, quantity);
@@ -130,7 +142,13 @@ contract NFT is
         emit PublicSaleMint(msg.sender, quantity);
     }
 
-    function auctionMint(uint256 quantity) external payable callerIsUser {
+    function auctionMint(
+        uint256 quantity,
+        string calldata salt,
+        bytes calldata signature
+    ) external payable callerIsUser {
+        require(verifySignature(salt, msg.sender, signature), "called with incorrect signature");
+
         uint256 _saleStartTime = uint256(auctionConfig.auctionSaleStartTime);
         require(_saleStartTime != 0 && block.timestamp >= _saleStartTime, "sale has not started yet");
         require(totalSupply() + quantity <= maxBatchSize - amountForDevsAndPlatform, "reached max supply");
@@ -150,12 +168,8 @@ contract NFT is
         }
     }
 
-    function isPublicSaleOn(
-        uint256 publicPriceWei,
-        uint256 publicSaleKey,
-        uint256 publicSaleStartTime
-    ) public view returns (bool) {
-        return publicPriceWei != 0 && publicSaleKey != 0 && block.timestamp >= publicSaleStartTime;
+    function isPublicSaleOn(uint256 publicPriceWei, uint256 publicSaleStartTime) public view returns (bool) {
+        return publicPriceWei != 0 && block.timestamp >= publicSaleStartTime;
     }
 
     function getAuctionPrice(uint256 _saleStartTime) public view returns (uint256) {
@@ -184,7 +198,7 @@ contract NFT is
     function endAuctionAndSetupPublicSaleInfo(uint64 publicPriceWei, uint32 publicSaleStartTime) external onlyOwner {
         delete auctionConfig;
 
-        publicSaleConfig = PublicSaleConfig(publicSaleStartTime, publicPriceWei, publicSaleConfig.publicSaleKey);
+        publicSaleConfig = PublicSaleConfig(publicSaleStartTime, publicPriceWei);
     }
 
     // function setAuctionSaleStartTime(uint32 timestamp) external onlyOwner {
@@ -212,8 +226,8 @@ contract NFT is
         );
     }
 
-    function setPublicSaleKey(uint32 key) external onlyOwner {
-        publicSaleConfig.publicSaleKey = key;
+    function setSigner(address signer_) external onlyOwner {
+        signer = signer_;
     }
 
     // function seedAllowlist(address[] memory addresses, uint256[] memory numSlots) external onlyOwner {
@@ -325,5 +339,23 @@ contract NFT is
 
     function getOwnershipData(uint256 tokenId) external view returns (TokenOwnership memory) {
         return ownershipOf(tokenId);
+    }
+
+    function getMessageHash(string calldata _salt, address _userAddress) internal view returns (bytes32) {
+        return keccak256(abi.encode(_salt, address(this), _userAddress));
+    }
+
+    function _recover(bytes32 _rawMessageHash, bytes memory signature) internal pure returns (address) {
+        return _rawMessageHash.toEthSignedMessageHash().recover(signature);
+    }
+
+    function verifySignature(
+        string calldata _salt,
+        address _userAddress,
+        bytes memory signature
+    ) public view returns (bool) {
+        bytes32 rawMessageHash = getMessageHash(_salt, _userAddress);
+
+        return _recover(rawMessageHash, signature) == signer;
     }
 }
