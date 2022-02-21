@@ -20,7 +20,7 @@ contract NFT is
     using StringsUpgradeable for uint256;
 
     uint256 public maxPerAddressDuringMint;
-    uint256 public amountForDevs;
+    uint256 public amountForDevsAndPlatform;
     bytes32 public override merkleRoot;
     bytes32 public keyHash;
     bool public revealed;
@@ -66,7 +66,7 @@ contract NFT is
         string memory notRevealedURI_,
         uint256 maxBatchSize_,
         uint256 collectionSize_,
-        uint256 amountForDevs_,
+        uint256 amountForDevsAndPlatform_,
         address vrfCoordinatorAddress_,
         address linkAddress_,
         bytes32 keyHash_,
@@ -78,7 +78,7 @@ contract NFT is
         __ERC721A_init_unchained(name_, symbol_, notRevealedURI_, maxBatchSize_, collectionSize_);
 
         maxPerAddressDuringMint = maxBatchSize_;
-        amountForDevs = amountForDevs_;
+        amountForDevsAndPlatform = amountForDevsAndPlatform_;
 
         keyHash = keyHash_;
         fee = fee_;
@@ -142,7 +142,7 @@ contract NFT is
     function auctionMint(uint256 quantity) external payable callerIsUser {
         uint256 _saleStartTime = uint256(saleConfig.auctionSaleStartTime);
         require(_saleStartTime != 0 && block.timestamp >= _saleStartTime, "sale has not started yet");
-        require(totalSupply() + quantity <= maxBatchSize - amountForDevs, "reached max supply");
+        require(totalSupply() + quantity <= maxBatchSize - amountForDevsAndPlatform, "reached max supply");
         require(numberMinted(msg.sender) + quantity <= maxPerAddressDuringMint, "can not mint this many");
         uint256 totalCost = getAuctionPrice(_saleStartTime) * quantity;
         _safeMint(msg.sender, quantity);
@@ -230,12 +230,29 @@ contract NFT is
     // }
 
     // For marketing etc.
-    function devMint(uint256 quantity, address devAddress) external onlyOwner {
-        require(totalSupply() + quantity <= amountForDevs, "too many already minted before dev mint");
-        require(quantity % maxBatchSize == 0, "can only mint a multiple of the maxBatchSize");
-        uint256 numChunks = quantity / maxBatchSize;
+    function devMint(
+        uint256 totalQuantity,
+        uint256 quantityForPlatform,
+        address devAddress,
+        address platformAddress
+    ) external onlyOwner {
+        require(totalSupply() + totalQuantity <= amountForDevsAndPlatform, "too many already minted before dev mint");
+        require(quantityForPlatform < totalQuantity, "too much for platform");
+
+        chunksMint(quantityForPlatform, platformAddress);
+        chunksMint(totalQuantity - quantityForPlatform, devAddress);
+    }
+
+    function chunksMint(uint256 quantity, address to) internal {
+        uint256 _maxBatchSize = maxBatchSize;
+        uint256 numChunks = quantity / _maxBatchSize;
+        uint256 remainder = quantity % _maxBatchSize;
+
         for (uint256 i = 0; i < numChunks; i++) {
-            _safeMint(devAddress, maxBatchSize);
+            _safeMint(to, _maxBatchSize);
+        }
+        if (remainder > 0) {
+            _safeMint(to, remainder);
         }
     }
 

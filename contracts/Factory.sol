@@ -16,6 +16,9 @@ contract Factory is OwnableUpgradeable, ReentrancyGuardUpgradeable {
 
     address public immutable ERC721A_IMPL;
 
+    address public platform;
+    uint256 public platformRate;
+
     address public vrfCoordinatorAddress;
     address public linkAddress;
     bytes32 public keyHash;
@@ -44,8 +47,11 @@ contract Factory is OwnableUpgradeable, ReentrancyGuardUpgradeable {
         string memory notRevealedURI_,
         uint256 maxBatchSize_,
         uint256 collectionSize_,
-        uint256 amountForDevs_
-    ) external onlyOwner {
+        uint256 amountForDevsAndPlatform_,
+        uint256 amountForPlatform__
+    ) public payable {
+        require(amountForPlatform__ < amountForDevsAndPlatform_, "too much for platform");
+
         address clonedNFT = ClonesUpgradeable.clone(ERC721A_IMPL);
         NFT(clonedNFT).initialize(
             name_,
@@ -53,17 +59,25 @@ contract Factory is OwnableUpgradeable, ReentrancyGuardUpgradeable {
             notRevealedURI_,
             maxBatchSize_,
             collectionSize_,
-            amountForDevs_,
+            amountForDevsAndPlatform_,
             vrfCoordinatorAddress,
             linkAddress,
             keyHash,
             fee
         );
-        NFT(clonedNFT).devMint(amountForDevs_, msg.sender);
+        NFT(clonedNFT).devMint(amountForDevsAndPlatform_, amountForPlatform__, msg.sender, platform);
         NFT(clonedNFT).transferOwnership(msg.sender);
         emit CreateNFT(clonedNFT);
 
         IERC20Upgradeable(linkAddress).safeTransfer(clonedNFT, fee);
+    }
+
+    function setPlatformParms(address payable platform_, uint256 platformRate_) public onlyOwner {
+        require(platform_ != address(0), "Curve: platform address is zero.");
+        require(platformRate_ < 100, "Curve: wrong rate");
+
+        platform = platform_;
+        platformRate = platformRate_;
     }
 
     function withdrawLink(address destination_, uint256 amount_) external onlyOwner {
