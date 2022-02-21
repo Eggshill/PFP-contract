@@ -89,16 +89,6 @@ contract NFT is
         _;
     }
 
-    // function allowlistMint() external payable callerIsUser {
-    //     uint256 price = uint256(saleConfig.mintlistPrice);
-    //     require(price != 0, "allowlist sale has not begun yet");
-    //     require(allowlist[msg.sender] > 0, "not eligible for allowlist mint");
-    //     require(totalSupply() + 1 <= collectionSize, "reached max supply");
-    //     allowlist[msg.sender]--;
-    //     _safeMint(msg.sender, 1);
-    //     refundIfOver(price);
-    // }
-
     function preSalesMint(
         uint256 index,
         uint256 thisTimeMint,
@@ -120,7 +110,7 @@ contract NFT is
         // _setClaimed(index);
         // allowlist[msg.sender]--;
         _safeMint(msg.sender, thisTimeMint);
-        refundIfOver(price);
+        refundIfOver(price * thisTimeMint);
 
         emit PreSalesMint(index, msg.sender, thisTimeMint, maxMint);
     }
