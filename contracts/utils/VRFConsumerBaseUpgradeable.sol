@@ -130,7 +130,7 @@ abstract contract VRFConsumerBaseUpgradeable is VRFRequestIDBase, Initializable 
      *
      * @dev https://docs.chain.link/docs/link-token-contracts
      */
-    function __VRFConsumerBase_init(address _vrfCoordinator, address _link) internal initializer {
+    function __VRFConsumerBase_init(address _vrfCoordinator, address _link) internal onlyInitializing {
         vrfCoordinator = _vrfCoordinator;
         LINK = LinkTokenInterface(_link);
     }

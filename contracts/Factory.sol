@@ -34,7 +34,6 @@ contract Factory is OwnableUpgradeable, ReentrancyGuardUpgradeable {
         bytes32 keyHash_,
         uint256 fee_
     ) {
-        __Ownable_init();
         ERC721A_IMPL = address(new NFT());
 
         platform = platform_;

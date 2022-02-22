@@ -77,6 +77,7 @@ contract NFT is
         // [0: platformAddress, 1: signer, 2: vrfCoordinatorAddress, 3: linkAddress]
         address[4] calldata relatedAddresses
     ) public initializer {
+        __Ownable_init_unchained();
         __Context_init_unchained();
         __ERC165_init_unchained();
         __VRFConsumerBase_init(relatedAddresses[2], relatedAddresses[3]);
