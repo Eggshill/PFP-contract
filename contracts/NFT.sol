@@ -38,6 +38,9 @@ contract NFT is
     bytes32 public override balanceTreeRoot;
     uint256 public mintlistPrice; // in Wei
 
+    address public platform;
+    uint256 public platformRate;
+
     struct PublicSaleConfig {
         uint32 publicSaleStartTime;
         uint128 publicPrice;
@@ -68,21 +71,23 @@ contract NFT is
         uint256 maxBatchSize_,
         uint256 collectionSize_,
         uint256 amountForDevsAndPlatform_,
-        address signer_,
-        address vrfCoordinatorAddress_,
-        address linkAddress_,
         bytes32 keyHash_,
-        uint256 fee_
+        uint256 fee_,
+        uint256 platformRate_,
+        // [0: platformAddress, 1: signer, 2: vrfCoordinatorAddress, 3: linkAddress]
+        address[4] calldata relatedAddresses
     ) public initializer {
         __Context_init_unchained();
         __ERC165_init_unchained();
-        __VRFConsumerBase_init(vrfCoordinatorAddress_, linkAddress_);
+        __VRFConsumerBase_init(relatedAddresses[2], relatedAddresses[3]);
         __ERC721A_init_unchained(name_, symbol_, notRevealedURI_, maxBatchSize_, collectionSize_);
 
         maxPerAddressDuringMint = maxBatchSize_;
         amountForDevsAndPlatform = amountForDevsAndPlatform_;
 
-        signer = signer_;
+        platform = relatedAddresses[0];
+        platformRate = platformRate_;
+        signer = relatedAddresses[1];
         keyHash = keyHash_;
         fee = fee_;
     }
@@ -304,7 +309,7 @@ contract NFT is
         string memory baseURI = _baseURI();
         return
             bytes(baseURI).length != 0
-                ? string(abi.encodePacked(baseURI, ((tokenId + startingIndex) % collectionSize).toString()))
+                ? string(abi.encodePacked(baseURI, ((tokenId + startingIndex) % collectionSize).toString(), ".json"))
                 : "baseuri not set correctly";
     }
 
@@ -325,7 +330,17 @@ contract NFT is
     }
 
     function withdrawMoney() external nonReentrant {
-        (bool success, ) = owner().call{value: address(this).balance}("");
+        uint256 balalce = address(this).balance;
+        bool success;
+
+        if (platform != address(0)) {
+            (success, ) = platform.call{value: (balalce * (platformRate)) / 100}("");
+            require(success, "Failed to send Ether");
+        }
+
+        balalce = address(this).balance;
+
+        (success, ) = owner().call{value: balalce}("");
         require(success, "Transfer failed.");
     }
 

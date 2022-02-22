@@ -59,6 +59,10 @@ contract Factory is OwnableUpgradeable, ReentrancyGuardUpgradeable {
         require(amountForPlatform__ < amountForDevsAndPlatform_, "TOO MUCH FOR PLATFORM");
 
         address clonedNFT = ClonesUpgradeable.clone(ERC721A_IMPL);
+
+        // [0: platformAddress, 1: signer, 2: vrfCoordinatorAddress, 3: linkAddress]
+        address[4] memory relatedAddresses = [platform, signer_, vrfCoordinatorAddress, linkAddress];
+
         NFT(clonedNFT).initialize(
             name_,
             symbol_,
@@ -66,11 +70,10 @@ contract Factory is OwnableUpgradeable, ReentrancyGuardUpgradeable {
             maxBatchSize_,
             collectionSize_,
             amountForDevsAndPlatform_,
-            signer_,
-            vrfCoordinatorAddress,
-            linkAddress,
             keyHash,
-            fee
+            fee,
+            platformRate,
+            relatedAddresses
         );
         NFT(clonedNFT).devMint(amountForDevsAndPlatform_, amountForPlatform__, msg.sender, platform);
         NFT(clonedNFT).transferOwnership(msg.sender);
