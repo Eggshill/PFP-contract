@@ -26,7 +26,7 @@ Rinkeby: 0x1Bb37d2E0627646c47b1eECf1A50CB3F2C40aCDb
 | maxBatchSize_             | uint256 | mint时每个地址的最大值&&每个用户最大mint数量                 |
 | collectionSize_           | uint256 | 该 nft 集合token的最大供应量                                 |
 | amountForDevsAndPlatform_ | uint256 | dev和platform可mint的数量                                    |
-| amountForPlatform__       | uint256 | 划分给platform的数量, 小于amountForDevsAndPlatform_          |
+| amountForPlatform_        | uint256 | 划分给platform的数量, 小于amountForDevsAndPlatform_          |
 | signer_                   | address | NFT mint所需的签名公钥                                       |
 
 
