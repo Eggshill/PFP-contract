@@ -1,5 +1,13 @@
 # 10kpfp合约接口
 
+**Factory 合约地址**
+
+Rinkeby: 0x1Bb37d2E0627646c47b1eECf1A50CB3F2C40aCDb	
+
+
+
+
+
 ## 1. 工厂合约
 
 ### 1.1 创建 10kpfp NFT合约
