@@ -102,12 +102,8 @@ contract NFT is
         uint256 index,
         uint256 thisTimeMint,
         uint256 maxMint,
-        bytes32[] calldata merkleProof,
-        string calldata salt,
-        bytes calldata signature
+        bytes32[] calldata merkleProof
     ) external payable override callerIsUser {
-        require(verifySignature(salt, msg.sender, signature), "called with incorrect signature");
-
         uint256 price = mintlistPrice;
         require(price != 0, "allowlist sale has not begun yet");
         // require(allowlist[msg.sender] > 0, "not eligible for allowlist mint");

@@ -11,8 +11,6 @@ interface IMerkleDistributor {
         uint256 index,
         uint256 thisTimeMint,
         uint256 maxMint,
-        bytes32[] calldata merkleProof,
-        string calldata salt,
-        bytes calldata signature
+        bytes32[] calldata merkleProof
     ) external payable;
 }
