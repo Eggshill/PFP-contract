@@ -331,17 +331,17 @@ contract NFT is
     }
 
     function withdrawMoney() external nonReentrant {
-        uint256 balalce = address(this).balance;
+        uint256 balance = address(this).balance;
         bool success;
 
         if (platform != address(0)) {
-            (success, ) = platform.call{value: (balalce * (platformRate)) / 100}("");
+            (success, ) = platform.call{value: (balance * (platformRate)) / 100}("");
             require(success, "Failed to send Ether");
         }
 
-        balalce = address(this).balance;
+        balance = address(this).balance;
 
-        (success, ) = owner().call{value: balalce}("");
+        (success, ) = owner().call{value: balance}("");
         require(success, "Transfer failed.");
     }
 
