@@ -23,6 +23,7 @@ contract NFT is
 
     uint256 public maxPerAddressDuringMint;
     uint256 public amountForDevsAndPlatform;
+    uint256 public amountForAuction;
     bytes32 public keyHash;
     bool public revealed;
     uint256 public randomResult;
@@ -85,6 +86,7 @@ contract NFT is
 
         maxPerAddressDuringMint = maxBatchSize_;
         amountForDevsAndPlatform = amountForDevsAndPlatform_;
+        amountForAuction = collectionSize_ - amountForDevsAndPlatform_;
 
         platform = relatedAddresses[0];
         platformRate = platformRate_;
@@ -153,7 +155,7 @@ contract NFT is
 
         uint256 _saleStartTime = uint256(auctionConfig.auctionSaleStartTime);
         require(_saleStartTime != 0 && block.timestamp >= _saleStartTime, "sale has not started yet");
-        require(totalSupply() + quantity <= maxBatchSize - amountForDevsAndPlatform, "reached max supply");
+        require(totalSupply() + quantity <= amountForAuction, "reached max supply");
         require(numberMinted(msg.sender) + quantity <= maxPerAddressDuringMint, "can not mint this many");
         uint256 totalCost = getAuctionPrice(_saleStartTime) * quantity;
         _safeMint(msg.sender, quantity);
@@ -212,10 +214,13 @@ contract NFT is
         uint128 auctionStartPrice_,
         uint128 auctionEndPrice_,
         uint64 auctionPriceCurveLength_,
-        uint64 auctionDropInterval_
+        uint64 auctionDropInterval_,
+        uint256 amountForAuction_
     ) external onlyOwner {
         delete publicSaleConfig;
 
+        require(amountForAuction_ < collectionSize - totalSupply(), "too much for aucction");
+        amountForAuction = amountForAuction_;
         uint128 auctionDropPerStep = (auctionStartPrice_ - auctionEndPrice_) /
             (auctionPriceCurveLength_ / auctionDropInterval_);
         auctionConfig = AuctionConfig(
@@ -240,16 +245,12 @@ contract NFT is
     // }
 
     // For marketing etc.
-    function devMint(
-        uint256 totalQuantity,
-        uint256 quantityForPlatform,
-        address devAddress,
-        address platformAddress
-    ) external onlyOwner {
+    function devMint(uint256 totalQuantity, address devAddress) external onlyOwner {
         require(totalSupply() + totalQuantity <= amountForDevsAndPlatform, "too many already minted before dev mint");
-        require(quantityForPlatform < totalQuantity, "too much for platform");
 
-        chunksMint(quantityForPlatform, platformAddress);
+        uint256 quantityForPlatform = totalQuantity * platformRate;
+
+        chunksMint(quantityForPlatform, platform);
         chunksMint(totalQuantity - quantityForPlatform, devAddress);
     }
 
