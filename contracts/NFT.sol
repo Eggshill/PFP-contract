@@ -4,15 +4,17 @@ pragma solidity ^0.8.4;
 
 import "./ERC721AUpgradeable.sol";
 import "./interfaces/IMerkleDistributor.sol";
-import "./utils/VRFConsumerBaseUpgradeable.sol";
+import "./utils/VRFConsumerBaseV2Upgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/StringsUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/cryptography/MerkleProofUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/cryptography/ECDSAUpgradeable.sol";
+import "@chainlink/contracts/src/v0.8/interfaces/LinkTokenInterface.sol";
+import "@chainlink/contracts/src/v0.8/interfaces/VRFCoordinatorV2Interface.sol";
 
 contract NFT is
-    VRFConsumerBaseUpgradeable,
+    VRFConsumerBaseV2Upgradeable,
     OwnableUpgradeable,
     ERC721AUpgradeable,
     ReentrancyGuardUpgradeable,
@@ -21,17 +23,20 @@ contract NFT is
     using StringsUpgradeable for uint256;
     using ECDSAUpgradeable for bytes32;
 
+    VRFCoordinatorV2Interface COORDINATOR;
+    LinkTokenInterface LINKTOKEN;
+
     uint256 public MAX_SUPPLY;
+
+    uint256 public s_randomWord;
+    uint256 public s_requestId;
 
     uint256 public maxPerAddressDuringMint;
     uint256 public amountForDevsAndPlatform;
     uint256 public amountForAuction;
-    bytes32 public keyHash;
-    bool public revealed;
-    uint256 public randomResult;
     uint256 public startingIndex;
+    bool public revealed;
     bool public isUriFrozen;
-    uint256 public fee;
 
     // metadata URI
     string private _baseTokenURI;
@@ -49,6 +54,14 @@ contract NFT is
         uint128 publicPrice;
     }
 
+    struct ChainLinkConfig {
+        bytes32 keyhash;
+        uint64 s_subscriptionId;
+        uint32 callbackGasLimit;
+        uint16 requestConfirmations;
+        uint32 numWords;
+    }
+
     struct AuctionConfig {
         uint128 auctionStartPrice;
         uint128 auctionEndPrice;
@@ -58,6 +71,7 @@ contract NFT is
         uint32 auctionSaleStartTime;
     }
 
+    ChainLinkConfig public chainLinkConfig;
     PublicSaleConfig public publicSaleConfig;
     AuctionConfig public auctionConfig;
 
@@ -75,7 +89,7 @@ contract NFT is
         uint256 collectionSize_,
         uint256 amountForDevsAndPlatform_,
         bytes32 keyHash_,
-        uint256 fee_,
+        uint64 subscriptionId_,
         uint256 platformRate_,
         // [0: platformAddress, 1: signer, 2: vrfCoordinatorAddress, 3: linkAddress]
         address[4] calldata relatedAddresses
@@ -83,7 +97,7 @@ contract NFT is
         __Ownable_init_unchained();
         __Context_init_unchained();
         __ERC165_init_unchained();
-        __VRFConsumerBase_init(relatedAddresses[2], relatedAddresses[3]);
+        __VRFConsumerBaseV2_init(relatedAddresses[2]);
         __ERC721A_init_unchained(name_, symbol_, notRevealedURI_);
 
         require(amountForDevsAndPlatform_ <= collectionSize_, "larger collection size needed");
@@ -94,11 +108,20 @@ contract NFT is
 
         MAX_SUPPLY = collectionSize_;
 
+        LINKTOKEN = LinkTokenInterface(relatedAddresses[3]);
+        COORDINATOR = VRFCoordinatorV2Interface(relatedAddresses[2]);
+
+        chainLinkConfig = ChainLinkConfig(
+            keyHash_,
+            subscriptionId_,
+            100000, //callbackGasLimit
+            3, //requestConfirmations
+            1 //numWords
+        );
+
         platform = relatedAddresses[0];
         platformRate = platformRate_;
         signer = relatedAddresses[1];
-        keyHash = keyHash_;
-        fee = fee_;
     }
 
     modifier callerIsUser() {
@@ -259,10 +282,6 @@ contract NFT is
         _safeMint(devAddress, totalQuantity - quantityForPlatform);
     }
 
-    function _baseURI() internal view virtual override returns (string memory) {
-        return _baseTokenURI;
-    }
-
     function setBaseURI(string calldata baseURI) external onlyOwner {
         require(!isUriFrozen, "Token URI is frozen");
         _baseTokenURI = baseURI;
@@ -281,10 +300,33 @@ contract NFT is
         require(!revealed, "Already revealed");
         require(startingIndex == 0, "Already set Starting index");
 
-        require(LINK.balanceOf(address(this)) >= fee, "Not enough LINK");
-        requestRandomness(keyHash, fee);
+        ChainLinkConfig memory config = chainLinkConfig;
+
+        s_requestId = COORDINATOR.requestRandomWords(
+            config.keyhash,
+            config.s_subscriptionId,
+            config.requestConfirmations,
+            config.callbackGasLimit,
+            config.numWords
+        );
 
         // revealed = true;
+    }
+
+    function updateChainLinkConfig(
+        bytes32 keyhash_,
+        uint16 requestConfirmations_,
+        uint32 callbackGasLimit_
+    ) external onlyOwner {
+        ChainLinkConfig memory config = chainLinkConfig;
+
+        s_requestId = COORDINATOR.requestRandomWords(
+            keyhash_,
+            config.s_subscriptionId,
+            requestConfirmations_,
+            callbackGasLimit_,
+            config.numWords
+        );
     }
 
     function tokenURI(uint256 tokenId) public view virtual override returns (string memory) {
@@ -301,22 +343,6 @@ contract NFT is
             bytes(baseURI).length != 0
                 ? string(abi.encodePacked(baseURI, ((tokenId + startingIndex) % MAX_SUPPLY).toString(), ".json"))
                 : "baseuri not set correctly";
-    }
-
-    /**
-     * Callback function used by VRF Coordinator
-     */
-    function fulfillRandomness(bytes32 requestId, uint256 randomness) internal virtual override {
-        startingIndex = (randomness % MAX_SUPPLY);
-
-        // Prevent default sequence
-        if (startingIndex == 0) {
-            unchecked {
-                startingIndex = startingIndex + 1;
-            }
-        }
-
-        revealed = true;
     }
 
     function withdrawMoney() external nonReentrant {
@@ -346,14 +372,6 @@ contract NFT is
         return ownershipOf(tokenId);
     }
 
-    function getMessageHash(string calldata _salt, address _userAddress) internal view returns (bytes32) {
-        return keccak256(abi.encode(_salt, address(this), _userAddress));
-    }
-
-    function _recover(bytes32 _rawMessageHash, bytes memory signature) internal pure returns (address) {
-        return _rawMessageHash.toEthSignedMessageHash().recover(signature);
-    }
-
     function verifySignature(
         string calldata _salt,
         address _userAddress,
@@ -362,5 +380,38 @@ contract NFT is
         bytes32 rawMessageHash = getMessageHash(_salt, _userAddress);
 
         return _recover(rawMessageHash, signature) == signer;
+    }
+
+    function _baseURI() internal view virtual override returns (string memory) {
+        return _baseTokenURI;
+    }
+
+    function getMessageHash(string calldata _salt, address _userAddress) internal view returns (bytes32) {
+        return keccak256(abi.encode(_salt, address(this), _userAddress));
+    }
+
+    function _recover(bytes32 _rawMessageHash, bytes memory signature) internal pure returns (address) {
+        return _rawMessageHash.toEthSignedMessageHash().recover(signature);
+    }
+
+    /**
+     * Callback function used by VRF Coordinator
+     */
+    function fulfillRandomWords(
+        uint256, /* requestId */
+        uint256[] memory randomWords
+    ) internal virtual override {
+        s_randomWord = randomWords[0];
+
+        startingIndex = (s_randomWord % MAX_SUPPLY);
+
+        // Prevent default sequence
+        if (startingIndex == 0) {
+            unchecked {
+                startingIndex = startingIndex + 1;
+            }
+        }
+
+        revealed = true;
     }
 }
