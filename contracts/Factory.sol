@@ -14,7 +14,7 @@ import "@openzeppelin/contracts-upgradeable/utils/StringsUpgradeable.sol";
 contract Factory is OwnableUpgradeable, ReentrancyGuardUpgradeable {
     using SafeERC20Upgradeable for IERC20Upgradeable;
 
-    address public immutable ERC721A_IMPL;
+    address public erc721AImplementation;
 
     address public platform;
     uint256 public platformRate;
@@ -34,7 +34,7 @@ contract Factory is OwnableUpgradeable, ReentrancyGuardUpgradeable {
         bytes32 keyHash_,
         uint256 fee_
     ) {
-        ERC721A_IMPL = address(new NFT());
+        erc721AImplementation = address(new NFT());
 
         platform = platform_;
         platformRate = platformRate_;
@@ -54,7 +54,7 @@ contract Factory is OwnableUpgradeable, ReentrancyGuardUpgradeable {
         uint256 amountForDevsAndPlatform_,
         address signer_
     ) public payable {
-        address clonedNFT = ClonesUpgradeable.clone(ERC721A_IMPL);
+        address clonedNFT = ClonesUpgradeable.clone(erc721AImplementation);
 
         // [0: platformAddress, 1: signer, 2: vrfCoordinatorAddress, 3: linkAddress]
         address[4] memory relatedAddresses = [platform, signer_, vrfCoordinatorAddress, linkAddress];
@@ -83,6 +83,10 @@ contract Factory is OwnableUpgradeable, ReentrancyGuardUpgradeable {
 
         platform = platform_;
         platformRate = platformRate_;
+    }
+
+    function changeImplementation(address newImplementationAddress) public onlyOwner {
+        erc721AImplementation = newImplementationAddress;
     }
 
     function withdrawToken(
