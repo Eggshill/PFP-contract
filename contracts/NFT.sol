@@ -394,6 +394,10 @@ contract NFT is
         return _rawMessageHash.toEthSignedMessageHash().recover(signature);
     }
 
+    function _startTokenId() internal view virtual override returns (uint256) {
+        return 1;
+    }
+
     /**
      * Callback function used by VRF Coordinator
      */

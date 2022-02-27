@@ -280,7 +280,7 @@ Event Hex Signature: dec21920125339eda7ee3bad222a20df6041eb3a6dcef59e716c87bbbf4
 
 
 
-### 2.10 公售(固定价格) 设置 && 非拍卖销售设置
+### 2.10 公售(固定价格) Mint
 
 **Function**: `publicSaleMint`
 
