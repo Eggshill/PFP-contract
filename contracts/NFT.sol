@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity ^0.8.0;
+pragma solidity ^0.8.4;
 
 import "./ERC721AUpgradeable.sol";
 import "./interfaces/IMerkleDistributor.sol";
@@ -20,6 +20,8 @@ contract NFT is
 {
     using StringsUpgradeable for uint256;
     using ECDSAUpgradeable for bytes32;
+
+    uint256 public MAX_SUPPLY;
 
     uint256 public maxPerAddressDuringMint;
     uint256 public amountForDevsAndPlatform;
@@ -69,7 +71,7 @@ contract NFT is
         string memory name_,
         string memory symbol_,
         string memory notRevealedURI_,
-        uint256 maxBatchSize_,
+        uint256 maxPerAddressDuringMint_,
         uint256 collectionSize_,
         uint256 amountForDevsAndPlatform_,
         bytes32 keyHash_,
@@ -82,11 +84,15 @@ contract NFT is
         __Context_init_unchained();
         __ERC165_init_unchained();
         __VRFConsumerBase_init(relatedAddresses[2], relatedAddresses[3]);
-        __ERC721A_init_unchained(name_, symbol_, notRevealedURI_, maxBatchSize_, collectionSize_);
+        __ERC721A_init_unchained(name_, symbol_, notRevealedURI_);
 
-        maxPerAddressDuringMint = maxBatchSize_;
+        require(amountForDevsAndPlatform_ <= collectionSize_, "larger collection size needed");
+
+        maxPerAddressDuringMint = maxPerAddressDuringMint_;
         amountForDevsAndPlatform = amountForDevsAndPlatform_;
         amountForAuction = collectionSize_ - amountForDevsAndPlatform_;
+
+        MAX_SUPPLY = collectionSize_;
 
         platform = relatedAddresses[0];
         platformRate = platformRate_;
@@ -110,7 +116,7 @@ contract NFT is
         require(price != 0, "allowlist sale has not begun yet");
         // require(allowlist[msg.sender] > 0, "not eligible for allowlist mint");
         require(numberMinted(msg.sender) + thisTimeMint <= maxMint, "can not mint this many");
-        require(totalSupply() + thisTimeMint <= collectionSize, "reached max supply");
+        require(totalSupply() + thisTimeMint <= MAX_SUPPLY, "reached max supply");
 
         // Verify the merkle proof.
         bytes32 node = keccak256(abi.encodePacked(index, msg.sender, maxMint));
@@ -138,7 +144,7 @@ contract NFT is
         uint256 publicSaleStartTime = uint256(config.publicSaleStartTime);
 
         require(isPublicSaleOn(publicPrice, publicSaleStartTime), "public sale has not begun yet");
-        require(totalSupply() + quantity <= collectionSize, "reached max supply");
+        require(totalSupply() + quantity <= MAX_SUPPLY, "reached max supply");
         require(numberMinted(msg.sender) + quantity <= maxPerAddressDuringMint, "can not mint this many");
         _safeMint(msg.sender, quantity);
         refundIfOver(publicPrice * quantity);
@@ -190,7 +196,6 @@ contract NFT is
     }
 
     function setMaxPerAddressDuringMint(uint32 quantity) external onlyOwner {
-        require(quantity < maxBatchSize, "Exceed max mint batch number");
         maxPerAddressDuringMint = quantity;
     }
 
@@ -219,7 +224,7 @@ contract NFT is
     ) external onlyOwner {
         delete publicSaleConfig;
 
-        require(amountForAuction_ < collectionSize - totalSupply(), "too much for aucction");
+        require(amountForAuction_ < MAX_SUPPLY - totalSupply(), "too much for aucction");
         amountForAuction = amountForAuction_;
         uint128 auctionDropPerStep = (auctionStartPrice_ - auctionEndPrice_) /
             (auctionPriceCurveLength_ / auctionDropInterval_);
@@ -250,21 +255,8 @@ contract NFT is
 
         uint256 quantityForPlatform = totalQuantity * platformRate;
 
-        chunksMint(quantityForPlatform, platform);
-        chunksMint(totalQuantity - quantityForPlatform, devAddress);
-    }
-
-    function chunksMint(uint256 quantity, address to) internal {
-        uint256 _maxBatchSize = maxBatchSize;
-        uint256 numChunks = quantity / _maxBatchSize;
-        uint256 remainder = quantity % _maxBatchSize;
-
-        for (uint256 i = 0; i < numChunks; i++) {
-            _safeMint(to, _maxBatchSize);
-        }
-        if (remainder > 0) {
-            _safeMint(to, remainder);
-        }
+        _safeMint(platform, quantityForPlatform);
+        _safeMint(devAddress, totalQuantity - quantityForPlatform);
     }
 
     function _baseURI() internal view virtual override returns (string memory) {
@@ -307,7 +299,7 @@ contract NFT is
         string memory baseURI = _baseURI();
         return
             bytes(baseURI).length != 0
-                ? string(abi.encodePacked(baseURI, ((tokenId + startingIndex) % collectionSize).toString(), ".json"))
+                ? string(abi.encodePacked(baseURI, ((tokenId + startingIndex) % MAX_SUPPLY).toString(), ".json"))
                 : "baseuri not set correctly";
     }
 
@@ -315,7 +307,7 @@ contract NFT is
      * Callback function used by VRF Coordinator
      */
     function fulfillRandomness(bytes32 requestId, uint256 randomness) internal virtual override {
-        startingIndex = (randomness % collectionSize);
+        startingIndex = (randomness % MAX_SUPPLY);
 
         // Prevent default sequence
         if (startingIndex == 0) {
