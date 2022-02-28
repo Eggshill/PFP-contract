@@ -377,25 +377,25 @@ contract NFT is
         address _userAddress,
         bytes memory signature
     ) public view returns (bool) {
-        bytes32 rawMessageHash = getMessageHash(_salt, _userAddress);
+        bytes32 rawMessageHash = _getMessageHash(_salt, _userAddress);
 
         return _recover(rawMessageHash, signature) == signer;
+    }
+
+    function _startTokenId() internal view virtual override returns (uint256) {
+        return 1;
     }
 
     function _baseURI() internal view virtual override returns (string memory) {
         return _baseTokenURI;
     }
 
-    function getMessageHash(string calldata _salt, address _userAddress) internal view returns (bytes32) {
+    function _getMessageHash(string calldata _salt, address _userAddress) internal view returns (bytes32) {
         return keccak256(abi.encode(_salt, address(this), _userAddress));
     }
 
     function _recover(bytes32 _rawMessageHash, bytes memory signature) internal pure returns (address) {
         return _rawMessageHash.toEthSignedMessageHash().recover(signature);
-    }
-
-    function _startTokenId() internal view virtual override returns (uint256) {
-        return 1;
     }
 
     /**
