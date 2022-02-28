@@ -18,6 +18,7 @@ contract Factory is OwnableUpgradeable, ReentrancyGuardUpgradeable {
 
     address public platform;
     uint256 public platformRate;
+    uint256 public commission;
 
     address public vrfCoordinatorAddress;
     address public linkAddress;
@@ -29,6 +30,7 @@ contract Factory is OwnableUpgradeable, ReentrancyGuardUpgradeable {
     constructor(
         address platform_,
         uint256 platformRate_,
+        uint256 commission_,
         address vrfCoordinatorAddress_,
         address linkAddress_,
         bytes32 keyHash_,
@@ -38,6 +40,7 @@ contract Factory is OwnableUpgradeable, ReentrancyGuardUpgradeable {
 
         platform = platform_;
         platformRate = platformRate_;
+        commission = commission_;
 
         vrfCoordinatorAddress = vrfCoordinatorAddress_;
         linkAddress = linkAddress_;
@@ -72,15 +75,22 @@ contract Factory is OwnableUpgradeable, ReentrancyGuardUpgradeable {
             relatedAddresses
         );
         NFT(clonedNFT).transferOwnership(msg.sender);
+        refundIfOver(commission);
+
         emit CreateNFT(clonedNFT);
     }
 
-    function setPlatformParms(address payable platform_, uint256 platformRate_) public onlyOwner {
+    function setPlatformParms(
+        address payable platform_,
+        uint256 platformRate_,
+        uint256 commission_
+    ) public onlyOwner {
         require(platform_ != address(0), "PLATFORM ADDRESS IS ZERO");
         require(platformRate_ < 100, "WRONG RATE");
 
         platform = platform_;
         platformRate = platformRate_;
+        commission = commission_;
     }
 
     function changeImplementation(address newImplementationAddress) public onlyOwner {
@@ -103,5 +113,13 @@ contract Factory is OwnableUpgradeable, ReentrancyGuardUpgradeable {
 
         (bool success, ) = destination_.call{value: amount_}("");
         require(success, "Failed to send Ether");
+    }
+
+    function refundIfOver(uint256 price) private {
+        require(msg.value >= price, "Need to send more ETH.");
+        if (msg.value > price) {
+            (bool success, ) = payable(msg.sender).call{value: msg.value - price}("");
+            require(success, "Failed to send Ether");
+        }
     }
 }
