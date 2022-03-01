@@ -55,12 +55,19 @@ contract Factory is OwnableUpgradeable, ReentrancyGuardUpgradeable {
         uint256 maxPerAddressDuringMint_,
         uint256 collectionSize_,
         uint256 amountForDevsAndPlatform_,
-        address signer_
+        address signer_,
+        address proxyRegistryAddress_
     ) public payable {
         address clonedNFT = ClonesUpgradeable.clone(erc721AImplementation);
 
         // [0: platformAddress, 1: signer, 2: vrfCoordinatorAddress, 3: linkAddress]
-        address[4] memory relatedAddresses = [platform, signer_, vrfCoordinatorAddress, linkAddress];
+        address[5] memory relatedAddresses = [
+            platform,
+            signer_,
+            vrfCoordinatorAddress,
+            linkAddress,
+            proxyRegistryAddress_
+        ];
 
         NFT(clonedNFT).initialize(
             name_,

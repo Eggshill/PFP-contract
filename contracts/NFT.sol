@@ -5,6 +5,7 @@ pragma solidity ^0.8.4;
 import "./ERC721AUpgradeable.sol";
 import "./interfaces/IMerkleDistributor.sol";
 import "./utils/VRFConsumerBaseV2Upgradeable.sol";
+import "./utils/ProxyRegistry.sol";
 import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/StringsUpgradeable.sol";
@@ -40,6 +41,7 @@ contract NFT is
     // metadata URI
     string private _baseTokenURI;
     string private _notRevealedURI;
+    address private _proxyRegistryAddress;
 
     address public signer;
     bytes32 public override balanceTreeRoot;
@@ -91,13 +93,13 @@ contract NFT is
         bytes32 keyHash_,
         uint64 subscriptionId_,
         uint256 platformRate_,
-        // [0: platformAddress, 1: signer, 2: vrfCoordinatorAddress, 3: linkAddress]
-        address[4] calldata relatedAddresses
+        // [0: platformAddress, 1: signer, 2: vrfCoordinatorAddress, 3: linkAddress, 4: proxyRegistryAddress]
+        address[5] calldata relatedAddresses_
     ) public initializer {
         __Ownable_init_unchained();
         __Context_init_unchained();
         __ERC165_init_unchained();
-        __VRFConsumerBaseV2_init(relatedAddresses[2]);
+        __VRFConsumerBaseV2_init(relatedAddresses_[2]);
         __ERC721A_init_unchained(name_, symbol_, notRevealedURI_);
 
         require(amountForDevsAndPlatform_ <= collectionSize_, "larger collection size needed");
@@ -108,8 +110,8 @@ contract NFT is
 
         MAX_SUPPLY = collectionSize_;
 
-        LINKTOKEN = LinkTokenInterface(relatedAddresses[3]);
-        COORDINATOR = VRFCoordinatorV2Interface(relatedAddresses[2]);
+        LINKTOKEN = LinkTokenInterface(relatedAddresses_[3]);
+        COORDINATOR = VRFCoordinatorV2Interface(relatedAddresses_[2]);
 
         chainLinkConfig = ChainLinkConfig(
             keyHash_,
@@ -119,9 +121,10 @@ contract NFT is
             1 //numWords
         );
 
-        platform = relatedAddresses[0];
+        platform = relatedAddresses_[0];
         platformRate = platformRate_;
-        signer = relatedAddresses[1];
+        signer = relatedAddresses_[1];
+        _proxyRegistryAddress = relatedAddresses_[4];
     }
 
     modifier callerIsUser() {
@@ -200,15 +203,15 @@ contract NFT is
         return publicPriceWei != 0 && block.timestamp >= publicSaleStartTime;
     }
 
-    function getAuctionPrice(uint256 _saleStartTime) public view returns (uint256) {
+    function getAuctionPrice(uint256 saleStartTime_) public view returns (uint256) {
         AuctionConfig memory config = auctionConfig;
-        if (block.timestamp < _saleStartTime) {
+        if (block.timestamp < saleStartTime_) {
             return config.auctionStartPrice;
         }
-        if (block.timestamp - _saleStartTime >= config.auctionPriceCurveLength) {
+        if (block.timestamp - saleStartTime_ >= config.auctionPriceCurveLength) {
             return config.auctionEndPrice;
         } else {
-            uint256 steps = (block.timestamp - _saleStartTime) / config.auctionDropInterval;
+            uint256 steps = (block.timestamp - saleStartTime_) / config.auctionDropInterval;
             return config.auctionStartPrice - (steps * config.auctionDropPerStep);
         }
     }
@@ -223,11 +226,11 @@ contract NFT is
     }
 
     function updatePresaleInfo(
-        bytes32 newBalanceTreeRoot,
+        bytes32 newBalanceTreeRoot_,
         uint128 a_,
         uint128 b_
     ) external onlyOwner {
-        balanceTreeRoot = newBalanceTreeRoot;
+        balanceTreeRoot = newBalanceTreeRoot_;
         priceConfig = PriceConfig(a_, b_);
     }
 
@@ -349,6 +352,16 @@ contract NFT is
             bytes(baseURI).length != 0
                 ? string(abi.encodePacked(baseURI, ((tokenId + startingIndex) % MAX_SUPPLY).toString(), ".json"))
                 : "baseuri not set correctly";
+    }
+
+    function isApprovedForAll(address _owner, address operator) public view override returns (bool) {
+        // Whitelist OpenSea Proxy.
+        ProxyRegistry proxyRegistry = ProxyRegistry(_proxyRegistryAddress);
+        if (address(proxyRegistry.proxies(_owner)) == operator) {
+            return true;
+        }
+
+        return super.isApprovedForAll(_owner, operator);
     }
 
     function withdrawMoney() external nonReentrant {
