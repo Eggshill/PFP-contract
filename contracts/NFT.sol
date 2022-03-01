@@ -44,15 +44,11 @@ contract NFT is
 
     address public signer;
     bytes32 public override balanceTreeRoot;
-    uint256 public mintlistPrice; // in Wei
 
     address public platform;
     uint256 public platformRate;
 
-    struct PublicSaleConfig {
-        uint32 publicSaleStartTime;
-        uint128 publicPrice;
-    }
+    uint256 publicSaleStartTime;
 
     struct ChainLinkConfig {
         bytes32 keyhash;
@@ -71,9 +67,14 @@ contract NFT is
         uint32 auctionSaleStartTime;
     }
 
+    struct PriceConfig {
+        uint128 a;
+        uint128 b;
+    }
+
     ChainLinkConfig public chainLinkConfig;
-    PublicSaleConfig public publicSaleConfig;
     AuctionConfig public auctionConfig;
+    PriceConfig public priceConfig;
 
     // mapping(address => uint256) public allowlist;
 
@@ -135,8 +136,8 @@ contract NFT is
         uint256 maxMint,
         bytes32[] calldata merkleProof
     ) external payable override callerIsUser {
-        uint256 price = mintlistPrice;
-        require(price != 0, "allowlist sale has not begun yet");
+        uint256 totalPrice = getNonAuctionPrice(thisTimeMint);
+        require(totalPrice != 0, "allowlist sale has not begun yet");
         // require(allowlist[msg.sender] > 0, "not eligible for allowlist mint");
         require(numberMinted(msg.sender) + thisTimeMint <= maxMint, "can not mint this many");
         require(totalSupply() + thisTimeMint <= MAX_SUPPLY, "reached max supply");
@@ -146,11 +147,8 @@ contract NFT is
         // bytes32 node = keccak256(abi.encodePacked(index, account));
         require(MerkleProofUpgradeable.verify(merkleProof, balanceTreeRoot, node), "MerkleDistributor: Invalid proof.");
 
-        // Mark it claimed and send the token.
-        // _setClaimed(index);
-        // allowlist[msg.sender]--;
         _safeMint(msg.sender, thisTimeMint);
-        refundIfOver(price * thisTimeMint);
+        refundIfOver(totalPrice);
 
         emit PreSalesMint(index, msg.sender, thisTimeMint, maxMint);
     }
@@ -162,17 +160,15 @@ contract NFT is
     ) external payable callerIsUser {
         require(verifySignature(salt, msg.sender, signature), "called with incorrect signature");
 
-        PublicSaleConfig memory config = publicSaleConfig;
-        uint256 publicPrice = uint256(config.publicPrice);
-        uint256 publicSaleStartTime = uint256(config.publicSaleStartTime);
-
-        require(isPublicSaleOn(publicPrice, publicSaleStartTime), "public sale has not begun yet");
+        uint256 totalPrice = getNonAuctionPrice(quantity);
+        require(isPublicSaleOn(totalPrice), "public sale has not begun yet");
         require(totalSupply() + quantity <= MAX_SUPPLY, "reached max supply");
         require(numberMinted(msg.sender) + quantity <= maxPerAddressDuringMint, "can not mint this many");
-        _safeMint(msg.sender, quantity);
-        refundIfOver(publicPrice * quantity);
 
-        emit PublicSaleMint(msg.sender, quantity, publicPrice * quantity);
+        _safeMint(msg.sender, quantity);
+        refundIfOver(totalPrice);
+
+        emit PublicSaleMint(msg.sender, quantity, totalPrice);
     }
 
     function auctionMint(
@@ -201,7 +197,7 @@ contract NFT is
         }
     }
 
-    function isPublicSaleOn(uint256 publicPriceWei, uint256 publicSaleStartTime) public view returns (bool) {
+    function isPublicSaleOn(uint256 publicPriceWei) public view returns (bool) {
         return publicPriceWei != 0 && block.timestamp >= publicSaleStartTime;
     }
 
@@ -218,19 +214,34 @@ contract NFT is
         }
     }
 
+    function getNonAuctionPrice(uint256 quantity) public view returns (uint256) {
+        PriceConfig memory config = priceConfig;
+        return config.a * quantity + config.b;
+    }
+
     function setMaxPerAddressDuringMint(uint32 quantity) external onlyOwner {
         maxPerAddressDuringMint = quantity;
     }
 
-    function updatePresaleInfo(bytes32 newBalanceTreeRoot, uint256 mintlistPriceWei) external onlyOwner {
+    function updatePresaleInfo(
+        bytes32 newBalanceTreeRoot,
+        uint128 a_,
+        uint128 b_
+    ) external onlyOwner {
         balanceTreeRoot = newBalanceTreeRoot;
-        mintlistPrice = mintlistPriceWei;
+        priceConfig = PriceConfig(a_, b_);
     }
 
-    function endAuctionAndSetupPublicSaleInfo(uint64 publicPriceWei, uint32 publicSaleStartTime) external onlyOwner {
+    function endAuctionAndSetupPublicSaleInfo(
+        uint32 publicSaleStartTime_,
+        uint128 a_,
+        uint128 b_
+    ) external onlyOwner {
         delete auctionConfig;
+        delete priceConfig;
 
-        publicSaleConfig = PublicSaleConfig(publicSaleStartTime, publicPriceWei);
+        publicSaleStartTime = publicSaleStartTime_;
+        priceConfig = PriceConfig(a_, b_);
     }
 
     // function setAuctionSaleStartTime(uint32 timestamp) external onlyOwner {
@@ -245,7 +256,7 @@ contract NFT is
         uint64 auctionDropInterval_,
         uint256 amountForAuction_
     ) external onlyOwner {
-        delete publicSaleConfig;
+        delete publicSaleStartTime;
 
         require(amountForAuction_ < MAX_SUPPLY - totalSupply(), "too much for aucction");
         amountForAuction = amountForAuction_;
