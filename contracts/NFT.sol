@@ -35,7 +35,7 @@ contract NFT is
     uint256 public maxPerAddressDuringMint;
     uint256 public amountForDevsAndPlatform;
     uint256 public amountForAuction;
-    uint256 public startingIndex;
+    uint256 public initialrandomIndex;
     bool public revealed;
 
     // metadata URI
@@ -305,7 +305,7 @@ contract NFT is
 
     function reveal(string calldata baseURI) external onlyOwner {
         require(!revealed, "Already revealed");
-        require(startingIndex == 0, "Already set Starting index");
+        require(initialrandomIndex == 0, "Already set Starting index");
 
         ChainLinkConfig memory config = chainLinkConfig;
 
@@ -345,12 +345,27 @@ contract NFT is
             return _notRevealedURI;
         }
 
-        require(startingIndex != 0, "randomness request hasn't finalized");
+        uint256 _initialrandomIndex = initialrandomIndex;
+
+        require(_initialrandomIndex != 0, "randomness request hasn't finalized");
 
         string memory baseURI = _baseURI();
+        uint256 collectionSize = MAX_SUPPLY;
+        uint256 tailIndex = collectionSize - 1;
+
+        uint256[] memory tempID = new uint256[](collectionSize);
+
+        for (tailIndex; tailIndex > tokenId - 1; tailIndex--) {
+            tempID[_initialrandomIndex] = (tempID[tailIndex] == 0 ? tailIndex + 1 : tempID[tailIndex]);
+
+            _initialrandomIndex = (5 * _initialrandomIndex + 1) % tailIndex;
+        }
+
+        uint256 revealedID = (tempID[_initialrandomIndex] == 0 ? _initialrandomIndex + 1 : tempID[_initialrandomIndex]);
+
         return
             bytes(baseURI).length != 0
-                ? string(abi.encodePacked(baseURI, ((tokenId + startingIndex) % MAX_SUPPLY).toString(), ".json"))
+                ? string(abi.encodePacked(baseURI, revealedID.toString(), ".json"))
                 : "baseuri not set correctly";
     }
 
@@ -424,16 +439,18 @@ contract NFT is
         uint256, /* requestId */
         uint256[] memory randomWords
     ) internal virtual override {
-        s_randomWord = randomWords[0];
+        // s_randomWord = randomWords[0];
 
-        startingIndex = (s_randomWord % MAX_SUPPLY);
+        uint256 _initialrandomIndex = (randomWords[0] % MAX_SUPPLY);
 
-        // Prevent default sequence
-        if (startingIndex == 0) {
+        // Prevent default sequence and for check VRF result
+        if (_initialrandomIndex == 0) {
             unchecked {
-                startingIndex = startingIndex + 1;
+                _initialrandomIndex = _initialrandomIndex + 1;
             }
         }
+
+        initialrandomIndex = _initialrandomIndex;
 
         revealed = true;
     }
