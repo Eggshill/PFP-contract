@@ -36,7 +36,6 @@ contract NFT is
     uint256 public amountForAuction;
     uint256 public startingIndex;
     bool public revealed;
-    bool public isUriFrozen;
 
     // metadata URI
     string private _baseTokenURI;
@@ -293,8 +292,7 @@ contract NFT is
         _safeMint(devAddress, totalQuantity - quantityForPlatform);
     }
 
-    function setBaseURI(string calldata baseURI) external onlyOwner {
-        require(!isUriFrozen, "Token URI is frozen");
+    function setBaseURI(string calldata baseURI) public onlyOwner {
         _baseTokenURI = baseURI;
     }
 
@@ -302,12 +300,7 @@ contract NFT is
         _notRevealedURI = notRevealedURI;
     }
 
-    function freezeTokenURI() external onlyOwner {
-        require(!isUriFrozen, "Token URI is frozen");
-        isUriFrozen = true;
-    }
-
-    function reveal() external onlyOwner {
+    function reveal(string calldata baseURI) external onlyOwner {
         require(!revealed, "Already revealed");
         require(startingIndex == 0, "Already set Starting index");
 
@@ -320,6 +313,8 @@ contract NFT is
             config.callbackGasLimit,
             config.numWords
         );
+
+        setBaseURI(baseURI);
 
         // revealed = true;
     }
