@@ -15,6 +15,7 @@ contract Factory is OwnableUpgradeable, ReentrancyGuardUpgradeable {
     // using SafeERC20Upgradeable for IERC20Upgradeable;
 
     address public erc721AImplementation;
+    address public proxyRegistryAddress;
 
     address public platform;
     uint256 public platformRate;
@@ -34,9 +35,12 @@ contract Factory is OwnableUpgradeable, ReentrancyGuardUpgradeable {
         address vrfCoordinatorAddress_,
         address linkAddress_,
         bytes32 keyHash_,
-        uint64 subscriptionId_
+        uint64 subscriptionId_,
+        address proxyRegistryAddress_
     ) {
         erc721AImplementation = address(new NFT());
+
+        proxyRegistryAddress = proxyRegistryAddress_;
 
         platform = platform_;
         platformRate = platformRate_;
@@ -55,8 +59,7 @@ contract Factory is OwnableUpgradeable, ReentrancyGuardUpgradeable {
         uint256 maxPerAddressDuringMint_,
         uint256 collectionSize_,
         uint256 amountForDevsAndPlatform_,
-        address signer_,
-        address proxyRegistryAddress_
+        address signer_
     ) public payable {
         address clonedNFT = ClonesUpgradeable.clone(erc721AImplementation);
 
@@ -66,7 +69,7 @@ contract Factory is OwnableUpgradeable, ReentrancyGuardUpgradeable {
             signer_,
             vrfCoordinatorAddress,
             linkAddress,
-            proxyRegistryAddress_
+            proxyRegistryAddress
         ];
 
         NFT(clonedNFT).initialize(

@@ -240,7 +240,6 @@ contract NFT is
         uint128 b_
     ) external onlyOwner {
         delete auctionConfig;
-        delete priceConfig;
 
         publicSaleStartTime = publicSaleStartTime_;
         priceConfig = PriceConfig(a_, b_);
