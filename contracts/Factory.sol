@@ -38,7 +38,7 @@ contract Factory is OwnableUpgradeable, ReentrancyGuardUpgradeable {
         uint64 subscriptionId_,
         address proxyRegistryAddress_
     ) {
-        // erc721AImplementation = address(new NFT());
+        erc721AImplementation = address(new NFT());
 
         proxyRegistryAddress = proxyRegistryAddress_;
 
