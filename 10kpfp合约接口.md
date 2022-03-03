@@ -84,7 +84,7 @@ Event Hex Signature: 012b47e3f53ba43cf4658ac954147415baf5c6c94761af3bfda93607513
 
 **MethodID**: `cf6490ce`
 
-**Description**:   提取 Factory 中的 erc20 代币
+**Description**:   更新平台相关参数
 
 | Parameter     | Type    | Description     |
 | ------------- | ------- | --------------- |
@@ -138,7 +138,7 @@ Event Hex Signature: 012b47e3f53ba43cf4658ac954147415baf5c6c94761af3bfda93607513
 
 **MethodID**: `f2c4ce1e`
 
-**Description**:   设置 NFT Base URI
+**Description**:   设置盲盒 URI
 
 | Parameter      | Type   | Description |
 | -------------- | ------ | ----------- |
@@ -302,7 +302,7 @@ Event Hex Signature: dec21920125339eda7ee3bad222a20df6041eb3a6dcef59e716c87bbbf4
 
 **MethodID**: `0c1aeaf3`
 
-**Description**:   公售(固定价格) 参数设置, 并强制关闭荷兰拍
+**Description**:   公售(固定价格) 参数设置, 并关闭荷兰拍
 
 | Parameter           | Type    | Description  |
 | ------------------- | ------- | ------------ |
