@@ -12,6 +12,11 @@
         "type": "uint256"
       },
       {
+        "internalType": "uint256",
+        "name": "commission_",
+        "type": "uint256"
+      },
+      {
         "internalType": "address",
         "name": "vrfCoordinatorAddress_",
         "type": "address"
@@ -27,9 +32,14 @@
         "type": "bytes32"
       },
       {
-        "internalType": "uint256",
-        "name": "fee_",
-        "type": "uint256"
+        "internalType": "uint64",
+        "name": "subscriptionId_",
+        "type": "uint64"
+      },
+      {
+        "internalType": "address",
+        "name": "proxyRegistryAddress_",
+        "type": "address"
       }
     ],
     "stateMutability": "nonpayable",
@@ -68,13 +78,26 @@
     "type": "event"
   },
   {
-    "inputs": [],
-    "name": "ERC721A_IMPL",
-    "outputs": [
+    "inputs": [
       {
         "internalType": "address",
-        "name": "",
+        "name": "newImplementationAddress",
         "type": "address"
+      }
+    ],
+    "name": "changeImplementation",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "commission",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
       }
     ],
     "stateMutability": "view",
@@ -99,7 +122,7 @@
       },
       {
         "internalType": "uint256",
-        "name": "maxBatchSize_",
+        "name": "maxPerAddressDuringMint_",
         "type": "uint256"
       },
       {
@@ -110,11 +133,6 @@
       {
         "internalType": "uint256",
         "name": "amountForDevsAndPlatform_",
-        "type": "uint256"
-      },
-      {
-        "internalType": "uint256",
-        "name": "amountForPlatform__",
         "type": "uint256"
       },
       {
@@ -130,12 +148,12 @@
   },
   {
     "inputs": [],
-    "name": "fee",
+    "name": "erc721AImplementation",
     "outputs": [
       {
-        "internalType": "uint256",
+        "internalType": "address",
         "name": "",
-        "type": "uint256"
+        "type": "address"
       }
     ],
     "stateMutability": "view",
@@ -208,6 +226,19 @@
   },
   {
     "inputs": [],
+    "name": "proxyRegistryAddress",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
     "name": "renounceOwnership",
     "outputs": [],
     "stateMutability": "nonpayable",
@@ -224,11 +255,29 @@
         "internalType": "uint256",
         "name": "platformRate_",
         "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "commission_",
+        "type": "uint256"
       }
     ],
     "name": "setPlatformParms",
     "outputs": [],
     "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "subscriptionId",
+    "outputs": [
+      {
+        "internalType": "uint64",
+        "name": "",
+        "type": "uint64"
+      }
+    ],
+    "stateMutability": "view",
     "type": "function"
   },
   {
@@ -271,29 +320,6 @@
       }
     ],
     "name": "withdrawEth",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "token_",
-        "type": "address"
-      },
-      {
-        "internalType": "address",
-        "name": "destination_",
-        "type": "address"
-      },
-      {
-        "internalType": "uint256",
-        "name": "amount_",
-        "type": "uint256"
-      }
-    ],
-    "name": "withdrawToken",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"

@@ -1,5 +1,86 @@
 [
   {
+    "inputs": [],
+    "name": "ApprovalCallerNotOwnerNorApproved",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "ApprovalQueryForNonexistentToken",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "ApprovalToCurrentOwner",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "ApproveToCaller",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "BalanceQueryForZeroAddress",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "MintToZeroAddress",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "MintZeroQuantity",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "MintedQueryForZeroAddress",
+    "type": "error"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "have",
+        "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "want",
+        "type": "address"
+      }
+    ],
+    "name": "OnlyCoordinatorCanFulfill",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "OwnerQueryForNonexistentToken",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "TransferCallerNotOwnerNorApproved",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "TransferFromIncorrectOwner",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "TransferToNonERC721ReceiverImplementer",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "TransferToZeroAddress",
+    "type": "error"
+  },
+  {
     "anonymous": false,
     "inputs": [
       {
@@ -176,6 +257,32 @@
   },
   {
     "inputs": [],
+    "name": "MAX_SUPPLY",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "amountForAuction",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
     "name": "amountForDevsAndPlatform",
     "outputs": [
       {
@@ -300,6 +407,39 @@
   },
   {
     "inputs": [],
+    "name": "chainLinkConfig",
+    "outputs": [
+      {
+        "internalType": "bytes32",
+        "name": "keyhash",
+        "type": "bytes32"
+      },
+      {
+        "internalType": "uint64",
+        "name": "s_subscriptionId",
+        "type": "uint64"
+      },
+      {
+        "internalType": "uint32",
+        "name": "callbackGasLimit",
+        "type": "uint32"
+      },
+      {
+        "internalType": "uint16",
+        "name": "requestConfirmations",
+        "type": "uint16"
+      },
+      {
+        "internalType": "uint32",
+        "name": "numWords",
+        "type": "uint32"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
     "name": "contractURI",
     "outputs": [
       {
@@ -319,18 +459,8 @@
         "type": "uint256"
       },
       {
-        "internalType": "uint256",
-        "name": "quantityForPlatform",
-        "type": "uint256"
-      },
-      {
         "internalType": "address",
         "name": "devAddress",
-        "type": "address"
-      },
-      {
-        "internalType": "address",
-        "name": "platformAddress",
         "type": "address"
       }
     ],
@@ -342,14 +472,19 @@
   {
     "inputs": [
       {
-        "internalType": "uint64",
-        "name": "publicPriceWei",
-        "type": "uint64"
+        "internalType": "uint32",
+        "name": "publicSaleStartTime_",
+        "type": "uint32"
       },
       {
-        "internalType": "uint32",
-        "name": "publicSaleStartTime",
-        "type": "uint32"
+        "internalType": "uint128",
+        "name": "a_",
+        "type": "uint128"
+      },
+      {
+        "internalType": "uint128",
+        "name": "b_",
+        "type": "uint128"
       }
     ],
     "name": "endAuctionAndSetupPublicSaleInfo",
@@ -383,29 +518,14 @@
         "internalType": "uint64",
         "name": "auctionDropInterval_",
         "type": "uint64"
-      }
-    ],
-    "name": "endPublicSalesAndSetupAuctionSaleInfo",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "fee",
-    "outputs": [
+      },
       {
         "internalType": "uint256",
-        "name": "",
+        "name": "amountForAuction_",
         "type": "uint256"
       }
     ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "freezeTokenURI",
+    "name": "endPublicSalesAndSetupAuctionSaleInfo",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
@@ -433,11 +553,30 @@
     "inputs": [
       {
         "internalType": "uint256",
-        "name": "_saleStartTime",
+        "name": "saleStartTime_",
         "type": "uint256"
       }
     ],
     "name": "getAuctionPrice",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "quantity",
+        "type": "uint256"
+      }
+    ],
+    "name": "getNonAuctionPrice",
     "outputs": [
       {
         "internalType": "uint256",
@@ -469,6 +608,11 @@
             "internalType": "uint64",
             "name": "startTimestamp",
             "type": "uint64"
+          },
+          {
+            "internalType": "bool",
+            "name": "burned",
+            "type": "bool"
           }
         ],
         "internalType": "struct ERC721AUpgradeable.TokenOwnership",
@@ -498,7 +642,7 @@
       },
       {
         "internalType": "uint256",
-        "name": "maxBatchSize_",
+        "name": "maxPerAddressDuringMint_",
         "type": "uint256"
       },
       {
@@ -512,29 +656,24 @@
         "type": "uint256"
       },
       {
-        "internalType": "address",
-        "name": "signer_",
-        "type": "address"
-      },
-      {
-        "internalType": "address",
-        "name": "vrfCoordinatorAddress_",
-        "type": "address"
-      },
-      {
-        "internalType": "address",
-        "name": "linkAddress_",
-        "type": "address"
-      },
-      {
         "internalType": "bytes32",
         "name": "keyHash_",
         "type": "bytes32"
       },
       {
+        "internalType": "uint64",
+        "name": "subscriptionId_",
+        "type": "uint64"
+      },
+      {
         "internalType": "uint256",
-        "name": "fee_",
+        "name": "platformRate_",
         "type": "uint256"
+      },
+      {
+        "internalType": "address[5]",
+        "name": "relatedAddresses_",
+        "type": "address[5]"
       }
     ],
     "name": "initialize",
@@ -543,10 +682,23 @@
     "type": "function"
   },
   {
+    "inputs": [],
+    "name": "initialrandomIndex",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
     "inputs": [
       {
         "internalType": "address",
-        "name": "owner",
+        "name": "_owner",
         "type": "address"
       },
       {
@@ -572,11 +724,6 @@
         "internalType": "uint256",
         "name": "publicPriceWei",
         "type": "uint256"
-      },
-      {
-        "internalType": "uint256",
-        "name": "publicSaleStartTime",
-        "type": "uint256"
       }
     ],
     "name": "isPublicSaleOn",
@@ -592,46 +739,7 @@
   },
   {
     "inputs": [],
-    "name": "isUriFrozen",
-    "outputs": [
-      {
-        "internalType": "bool",
-        "name": "",
-        "type": "bool"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "keyHash",
-    "outputs": [
-      {
-        "internalType": "bytes32",
-        "name": "",
-        "type": "bytes32"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
     "name": "maxPerAddressDuringMint",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "mintlistPrice",
     "outputs": [
       {
         "internalType": "uint256",
@@ -707,6 +815,32 @@
     "type": "function"
   },
   {
+    "inputs": [],
+    "name": "platform",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "platformRate",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
     "inputs": [
       {
         "internalType": "uint256",
@@ -727,16 +861,6 @@
         "internalType": "bytes32[]",
         "name": "merkleProof",
         "type": "bytes32[]"
-      },
-      {
-        "internalType": "string",
-        "name": "salt",
-        "type": "string"
-      },
-      {
-        "internalType": "bytes",
-        "name": "signature",
-        "type": "bytes"
       }
     ],
     "name": "preSalesMint",
@@ -746,16 +870,16 @@
   },
   {
     "inputs": [],
-    "name": "publicSaleConfig",
+    "name": "priceConfig",
     "outputs": [
       {
-        "internalType": "uint32",
-        "name": "publicSaleStartTime",
-        "type": "uint32"
+        "internalType": "uint128",
+        "name": "a",
+        "type": "uint128"
       },
       {
         "internalType": "uint128",
-        "name": "publicPrice",
+        "name": "b",
         "type": "uint128"
       }
     ],
@@ -786,32 +910,19 @@
     "type": "function"
   },
   {
-    "inputs": [],
-    "name": "randomResult",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
     "inputs": [
       {
-        "internalType": "bytes32",
+        "internalType": "uint256",
         "name": "requestId",
-        "type": "bytes32"
+        "type": "uint256"
       },
       {
-        "internalType": "uint256",
-        "name": "randomness",
-        "type": "uint256"
+        "internalType": "uint256[]",
+        "name": "randomWords",
+        "type": "uint256[]"
       }
     ],
-    "name": "rawFulfillRandomness",
+    "name": "rawFulfillRandomWords",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
@@ -824,7 +935,13 @@
     "type": "function"
   },
   {
-    "inputs": [],
+    "inputs": [
+      {
+        "internalType": "string",
+        "name": "baseURI",
+        "type": "string"
+      }
+    ],
     "name": "reveal",
     "outputs": [],
     "stateMutability": "nonpayable",
@@ -838,6 +955,32 @@
         "internalType": "bool",
         "name": "",
         "type": "bool"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "s_randomWord",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "s_requestId",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
       }
     ],
     "stateMutability": "view",
@@ -978,19 +1121,6 @@
     "type": "function"
   },
   {
-    "inputs": [],
-    "name": "startingIndex",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
     "inputs": [
       {
         "internalType": "bytes4",
@@ -1017,49 +1147,6 @@
         "internalType": "string",
         "name": "",
         "type": "string"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "uint256",
-        "name": "index",
-        "type": "uint256"
-      }
-    ],
-    "name": "tokenByIndex",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "owner",
-        "type": "address"
-      },
-      {
-        "internalType": "uint256",
-        "name": "index",
-        "type": "uint256"
-      }
-    ],
-    "name": "tokenOfOwnerByIndex",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
       }
     ],
     "stateMutability": "view",
@@ -1137,13 +1224,41 @@
     "inputs": [
       {
         "internalType": "bytes32",
-        "name": "newBalanceTreeRoot",
+        "name": "keyhash_",
         "type": "bytes32"
       },
       {
-        "internalType": "uint256",
-        "name": "mintlistPriceWei",
-        "type": "uint256"
+        "internalType": "uint16",
+        "name": "requestConfirmations_",
+        "type": "uint16"
+      },
+      {
+        "internalType": "uint32",
+        "name": "callbackGasLimit_",
+        "type": "uint32"
+      }
+    ],
+    "name": "updateChainLinkConfig",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes32",
+        "name": "newBalanceTreeRoot_",
+        "type": "bytes32"
+      },
+      {
+        "internalType": "uint128",
+        "name": "a_",
+        "type": "uint128"
+      },
+      {
+        "internalType": "uint128",
+        "name": "b_",
+        "type": "uint128"
       }
     ],
     "name": "updatePresaleInfo",
