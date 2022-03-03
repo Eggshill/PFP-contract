@@ -140,8 +140,10 @@ contract NFT is
     ) external payable override callerIsUser {
         uint256 totalPrice = getNonAuctionPrice(thisTimeMint);
         require(totalPrice != 0, "allowlist sale has not begun yet");
-        // require(allowlist[msg.sender] > 0, "not eligible for allowlist mint");
-        require(numberMinted(msg.sender) + thisTimeMint <= maxMint, "can not mint this many");
+
+        uint256 userMinted = numberMinted(msg.sender);
+        require(userMinted + thisTimeMint <= maxPerAddressDuringMint, "can not mint this many");
+        require(userMinted + thisTimeMint <= maxMint, "can not mint this many");
         require(totalSupply() + thisTimeMint <= MAX_SUPPLY, "reached max supply");
 
         // Verify the merkle proof.
@@ -328,11 +330,11 @@ contract NFT is
     ) external onlyOwner {
         ChainLinkConfig memory config = chainLinkConfig;
 
-        s_requestId = COORDINATOR.requestRandomWords(
+        chainLinkConfig = ChainLinkConfig(
             keyhash_,
             config.s_subscriptionId,
-            requestConfirmations_,
             callbackGasLimit_,
+            requestConfirmations_,
             config.numWords
         );
     }
