@@ -10,6 +10,7 @@ import "@openzeppelin/contracts-upgradeable/proxy/ClonesUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/StringsUpgradeable.sol";
+import "@chainlink/contracts/src/v0.8/interfaces/VRFCoordinatorV2Interface.sol";
 
 contract Factory is OwnableUpgradeable, ReentrancyGuardUpgradeable {
     // using SafeERC20Upgradeable for IERC20Upgradeable;
@@ -35,7 +36,6 @@ contract Factory is OwnableUpgradeable, ReentrancyGuardUpgradeable {
         address vrfCoordinatorAddress_,
         address linkAddress_,
         bytes32 keyHash_,
-        uint64 subscriptionId_,
         address proxyRegistryAddress_
     ) {
         erc721AImplementation = address(new NFT());
@@ -49,7 +49,8 @@ contract Factory is OwnableUpgradeable, ReentrancyGuardUpgradeable {
         vrfCoordinatorAddress = vrfCoordinatorAddress_;
         linkAddress = linkAddress_;
         keyHash = keyHash_;
-        subscriptionId = subscriptionId_;
+
+        subscriptionId = VRFCoordinatorV2Interface(vrfCoordinatorAddress_).createSubscription();
     }
 
     function createNFT(
@@ -62,6 +63,7 @@ contract Factory is OwnableUpgradeable, ReentrancyGuardUpgradeable {
         address signer_
     ) public payable {
         address clonedNFT = ClonesUpgradeable.clone(erc721AImplementation);
+        VRFCoordinatorV2Interface(vrfCoordinatorAddress).addConsumer(subscriptionId, clonedNFT);
 
         // [0: platformAddress, 1: signer, 2: vrfCoordinatorAddress, 3: linkAddress]
         address[5] memory relatedAddresses = [
