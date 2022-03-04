@@ -190,7 +190,7 @@ Event Hex Signature: 012b47e3f53ba43cf4658ac954147415baf5c6c94761af3bfda93607513
 
 | Parameter          | Type    | Description     |
 | ------------------ | ------- | --------------- |
-| newBalanceTreeRoot | bytes32 | 新的 MerkleRoot |
+| newBalanceTreeRoot_ | bytes32 | 新的 MerkleRoot |
 | a_                 | uint128 | 价格参数a       |
 | b_                 | uint128 | 价格参数b       |
 
@@ -306,7 +306,7 @@ Event Hex Signature: dec21920125339eda7ee3bad222a20df6041eb3a6dcef59e716c87bbbf4
 
 | Parameter           | Type    | Description  |
 | ------------------- | ------- | ------------ |
-| publicSaleStartTime | uint128 | 公售开始时间 |
+| publicSaleStartTime_ | uint128 | 公售开始时间 |
 | a_                 | uint128 | 价格参数a       |
 | b_                 | uint128 | 价格参数b       |
 
