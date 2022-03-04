@@ -3,16 +3,13 @@
 pragma solidity ^0.8.4;
 
 import "./NFT.sol";
-// import "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/token/ERC721/IERC721Upgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/proxy/ClonesUpgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/utils/StringsUpgradeable.sol";
+// import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
+import "@openzeppelin/contracts/proxy/Clones.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "@chainlink/contracts/src/v0.8/interfaces/VRFCoordinatorV2Interface.sol";
 
-contract Factory is OwnableUpgradeable, ReentrancyGuardUpgradeable {
+contract Factory is Ownable, ReentrancyGuard {
     // using SafeERC20Upgradeable for IERC20Upgradeable;
 
     address public erc721AImplementation;
@@ -64,7 +61,7 @@ contract Factory is OwnableUpgradeable, ReentrancyGuardUpgradeable {
     ) public payable {
         refundIfOver(commission);
 
-        address clonedNFT = ClonesUpgradeable.clone(erc721AImplementation);
+        address clonedNFT = Clones.clone(erc721AImplementation);
         VRFCoordinatorV2Interface(vrfCoordinatorAddress).addConsumer(subscriptionId, clonedNFT);
 
         // [0: platformAddress, 1: signer, 2: vrfCoordinatorAddress, 3: linkAddress]
@@ -121,7 +118,7 @@ contract Factory is OwnableUpgradeable, ReentrancyGuardUpgradeable {
     //     IERC20Upgradeable(token_).safeTransfer(destination_, amount_);
     // }
 
-    function withdrawEth(address destination_, uint256 amount_) external onlyOwner {
+    function withdrawEth(address destination_, uint256 amount_) external onlyOwner nonReentrant {
         require(destination_ != address(0), "DESTINATION_CANNT_BE_0_ADDRESS");
 
         (bool success, ) = destination_.call{value: amount_}("");
