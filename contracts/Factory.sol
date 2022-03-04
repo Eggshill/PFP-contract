@@ -62,6 +62,8 @@ contract Factory is OwnableUpgradeable, ReentrancyGuardUpgradeable {
         uint256 amountForDevsAndPlatform_,
         address signer_
     ) public payable {
+        refundIfOver(commission);
+
         address clonedNFT = ClonesUpgradeable.clone(erc721AImplementation);
         VRFCoordinatorV2Interface(vrfCoordinatorAddress).addConsumer(subscriptionId, clonedNFT);
 
@@ -87,7 +89,6 @@ contract Factory is OwnableUpgradeable, ReentrancyGuardUpgradeable {
             relatedAddresses
         );
         NFT(clonedNFT).transferOwnership(msg.sender);
-        refundIfOver(commission);
 
         emit CreateNFT(clonedNFT);
     }

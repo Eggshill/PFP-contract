@@ -151,8 +151,8 @@ contract NFT is
         // bytes32 node = keccak256(abi.encodePacked(index, account));
         require(MerkleProofUpgradeable.verify(merkleProof, balanceTreeRoot, node), "MerkleDistributor: Invalid proof.");
 
-        _safeMint(msg.sender, thisTimeMint);
         refundIfOver(totalPrice);
+        _safeMint(msg.sender, thisTimeMint);
 
         emit PreSalesMint(index, msg.sender, thisTimeMint, maxMint);
     }
@@ -169,8 +169,8 @@ contract NFT is
         require(totalSupply() + quantity <= MAX_SUPPLY, "reached max supply");
         require(numberMinted(msg.sender) + quantity <= maxPerAddressDuringMint, "can not mint this many");
 
-        _safeMint(msg.sender, quantity);
         refundIfOver(totalPrice);
+        _safeMint(msg.sender, quantity);
 
         emit PublicSaleMint(msg.sender, quantity, totalPrice);
     }
@@ -187,8 +187,9 @@ contract NFT is
         require(totalSupply() + quantity <= amountForAuction, "reached max supply");
         require(numberMinted(msg.sender) + quantity <= maxPerAddressDuringMint, "can not mint this many");
         uint256 totalCost = getAuctionPrice(_saleStartTime) * quantity;
-        _safeMint(msg.sender, quantity);
+
         refundIfOver(totalCost);
+        _safeMint(msg.sender, quantity);
 
         emit AuctionMint(msg.sender, quantity, totalCost);
     }
