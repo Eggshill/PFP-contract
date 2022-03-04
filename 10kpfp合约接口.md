@@ -18,15 +18,16 @@ Rinkeby: 0x1Bb37d2E0627646c47b1eECf1A50CB3F2C40aCDb
 
 **Description**:   通过 Factory 合约创建 10kpfp NFT 合约
 
-| Parameter                 | Type    | Description                                                  |
-| ------------------------- | ------- | ------------------------------------------------------------ |
-| name_                     | string  | NFT Name                                                     |
-| symbol_                   | string  | NFT Symbol                                                   |
-| notRevealedURI_           | string  | notRevealedURI && Contract-level metadata. URL for the storefront-level metadata for contract |
-| maxPerAddressDuringMint_  | uint256 | mint时每个地址的最大值                                       |
-| collectionSize_           | uint256 | 该 nft 集合token的最大供应量                                 |
-| amountForDevsAndPlatform_ | uint256 | dev和platform可mint的数量                                    |
-| signer_                   | address | NFT mint所需的签名公钥                                       |
+| Parameter                 | Type           | Description                                                  |
+| ------------------------- | -------------- | ------------------------------------------------------------ |
+| name_                     | string         | NFT Name                                                     |
+| symbol_                   | string         | NFT Symbol                                                   |
+| notRevealedURI_           | string         | notRevealedURI && Contract-level metadata. URL for the storefront-level metadata for contract |
+| maxPerAddressDuringMint_  | uint256        | mint时每个地址的最大值                                       |
+| collectionSize_           | uint256        | 该 nft 集合token的最大供应量                                 |
+| amountForDevsAndPlatform_ | uint256        | dev和platform可mint的数量                                    |
+| signer_                   | address        | NFT mint所需的签名公钥                                       |
+| eth amount                | payable amount | 创建合约所需eth, 可查询commission方法获取最小价格            |
 
 
 
@@ -42,6 +43,22 @@ Event Hex Signature: 012b47e3f53ba43cf4658ac954147415baf5c6c94761af3bfda93607513
 | Field      | Type    | Description         | isIndexed |
 | ---------- | ------- | ------------------- | --------- |
 | nftAddress | address | 新创建的nft Address | true      |
+
+
+
+### 1.2 查看创建合约所需费用
+
+**Function**: `commission`
+
+**MethodID**: ``
+
+**Description**:   查看合约commission
+
+**Return Value**: 
+
+| Parameter | Type    | Description  |
+| --------- | ------- | ------------ |
+| price     | Uint256 | price in wei |
 
 
 
@@ -273,11 +290,12 @@ Event Hex Signature: 595aaede9de4a7851636cd278316b0c860b678208bab75fdfbb651d01c0
 
 **Description**:   荷兰拍 mint 方法
 
-| Parameter | Type    | Description |
-| --------- | ------- | ----------- |
-| quantity  | uint32  | 数量        |
-| salt      | uint128 | 盐值        |
-| signature | uint128 | 签名        |
+| Parameter | Type           | Description |
+| --------- | -------------- | ----------- |
+| quantity  | uint32         | 数量        |
+| salt      | uint128        | 盐值        |
+| signature | uint128        | 签名        |
+| eth       | payable amount | 发送eth数量 |
 
 **Event-fields & Signature:**
 
@@ -326,6 +344,8 @@ Event Hex Signature: dec21920125339eda7ee3bad222a20df6041eb3a6dcef59e716c87bbbf4
 | quantity  | uint128 | 公售固定价格       |
 | salt      | string  | 盐值 随机 定期更换 |
 | signature | bytes   | 签名结果           |
+| eth       | payable amount | 发送eth数量 |
+
 
 **Event-fields & Signature:**
 
