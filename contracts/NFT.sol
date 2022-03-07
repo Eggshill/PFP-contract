@@ -142,7 +142,7 @@ contract NFT is
         require(totalPrice != 0, "allowlist sale has not begun yet");
 
         uint256 userMinted = numberMinted(msg.sender);
-        require(userMinted + thisTimeMint <= maxPerAddressDuringMint, "can not mint this many");
+        require(userMinted + thisTimeMint <= maxPerAddressDuringMint, "exceed maxPerAddressDuringMint");
         require(userMinted + thisTimeMint <= maxMint, "can not mint this many");
         require(totalSupply() + thisTimeMint <= MAX_SUPPLY, "reached max supply");
 
@@ -288,13 +288,20 @@ contract NFT is
     // }
 
     // For marketing etc.
-    function devMint(uint256 totalQuantity, address devAddress) external onlyOwner {
-        require(totalSupply() + totalQuantity <= amountForDevsAndPlatform, "too many already minted before dev mint");
+    function devMint(address[] calldata addresses, uint256[] calldata quantity) external onlyOwner {
+        require(addresses.length == quantity.length, "length not match");
 
-        uint256 quantityForPlatform = totalQuantity * platformRate;
+        uint256 totalMint;
 
-        _safeMint(platform, quantityForPlatform);
-        _safeMint(devAddress, totalQuantity - quantityForPlatform);
+        for (uint256 i = 0; i < addresses.length; i++) {
+            totalMint += quantity[i];
+        }
+
+        require(totalSupply() + totalMint <= amountForDevsAndPlatform, "too many already minted before dev mint");
+
+        for (uint256 i = 0; i < addresses.length; i++) {
+            _safeMint(addresses[i], quantity[i]);
+        }
     }
 
     function setBaseURI(string calldata baseURI) public onlyOwner {
