@@ -36,8 +36,8 @@ Rinkeby: 0xca96c79FD5b30FCA14F612019C4d166853f207Ea
 ```
 event CreateNFT(address indexed nftAddress);
 
-Text Signature: "CreateNFT(address indexed)"
-Event Hex Signature: 012b47e3f53ba43cf4658ac954147415baf5c6c94761af3bfda93607513f234a
+Text Signature: "CreateNFT(address)"
+Event Hex Signature: 20c8ec73527c784276103598d0c71c99bf355dc2d4773f68f05498efd066072e
 ```
 
 | Field      | Type    | Description         | isIndexed |
@@ -381,4 +381,49 @@ Event Hex Signature: ecd35b7ff452057eb5131aa07239d81231e8728161ec2dc0ff51c92625f
 | Parameter | Type    | Description |
 | --------- | ------- | ----------- |
 | price     | uint256 | 所需价格    |
+
+
+
+### 2.12 查询拍卖(荷兰拍)价格
+
+**Function**: `getAuctionPrice`
+
+**MethodID**: `917d009e`
+
+**Description**:   查询荷兰拍价格
+
+| Parameter     | Type    | Description    |
+| ------------- | ------- | -------------- |
+| saleStartTime | uint256 | 荷兰拍开始时间 |
+
+**Return Value**: 
+
+| Parameter | Type    | Description      |
+| --------- | ------- | ---------------- |
+| price     | uint256 | 当前时间所需价格 |
+
+
+
+### 2.13 查询荷兰拍设置
+
+**Function**: `auctionConfig`
+
+**MethodID**: ``
+
+**Description**:   查询荷兰拍相关设置
+
+| Parameter | Type | Description |
+| --------- | ---- | ----------- |
+|           |      |             |
+
+**Return Value**: 
+
+| Parameter               | Type | Description      |
+| ----------------------- | ---- | ---------------- |
+| auctionStartPrice       | uint | 开始价格         |
+| auctionEndPrice         | uint | 结束价格         |
+| auctionPriceCurveLength | uint | 拍卖持续时间长度 |
+| auctionDropInterval     | uint | 降价间隔         |
+| auctionDropPerStep      | uint | 每次降价价格     |
+| auctionSaleStartTime    | uint | 拍卖开始时间     |
 
