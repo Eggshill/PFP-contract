@@ -89,8 +89,10 @@ contract NFT is
     }
 
     struct PriceConfig {
-        uint128 a;
-        uint128 b;
+        uint128 preSalePriceA;
+        uint128 preSalePriceB;
+        uint128 publicSalePriceA;
+        uint128 publicSalePriceB;
     }
 
     ChainLinkConfig public chainLinkConfig;
@@ -158,7 +160,7 @@ contract NFT is
         uint256 maxMint,
         bytes32[] calldata merkleProof
     ) external payable override callerIsUser {
-        uint256 totalPrice = getNonAuctionPrice(thisTimeMint);
+        uint256 totalPrice = getPreSalePrice(thisTimeMint);
 
         if (totalPrice == 0) revert PreSaleNotBegin();
 
@@ -184,7 +186,7 @@ contract NFT is
     ) external payable callerIsUser {
         if (!verifySignature(salt, msg.sender, quantity, signature)) revert InvalidSignature();
 
-        uint256 totalPrice = getNonAuctionPrice(quantity);
+        uint256 totalPrice = getPublicSalePrice(quantity);
 
         if (!isPublicSaleOn(totalPrice)) revert PublicSaleNotBegin();
         if (numberMinted(msg.sender) + quantity > maxPerAddressDuringMint) revert MintTooMuch();
@@ -243,9 +245,14 @@ contract NFT is
         }
     }
 
-    function getNonAuctionPrice(uint256 quantity) public view returns (uint256) {
+    function getPreSalePrice(uint256 quantity) public view returns (uint256) {
         PriceConfig memory config = priceConfig;
-        return config.a * quantity + config.b;
+        return config.preSalePriceA * quantity + config.preSalePriceB;
+    }
+
+    function getPublicSalePrice(uint256 quantity) public view returns (uint256) {
+        PriceConfig memory config = priceConfig;
+        return config.publicSalePriceA * quantity + config.publicSalePriceB;
     }
 
     function setMaxPerAddressDuringMint(uint32 quantity) external onlyOwner {
@@ -258,7 +265,8 @@ contract NFT is
         uint128 b_
     ) external onlyOwner {
         balanceTreeRoot = newBalanceTreeRoot_;
-        priceConfig = PriceConfig(a_, b_);
+        PriceConfig memory config = priceConfig;
+        priceConfig = PriceConfig(a_, b_, config.publicSalePriceA, config.publicSalePriceB);
     }
 
     function endAuctionAndSetupPublicSaleInfo(
@@ -268,8 +276,9 @@ contract NFT is
     ) external onlyOwner {
         delete auctionConfig;
 
+        PriceConfig memory config = priceConfig;
         publicSaleStartTime = publicSaleStartTime_;
-        priceConfig = PriceConfig(a_, b_);
+        priceConfig = PriceConfig(config.preSalePriceA, config.preSalePriceB, a_, b_);
     }
 
     // function setAuctionSaleStartTime(uint32 timestamp) external onlyOwner {
