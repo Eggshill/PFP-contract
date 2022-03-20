@@ -182,7 +182,7 @@ contract NFT is
         string calldata salt,
         bytes calldata signature
     ) external payable callerIsUser {
-        if (!verifySignature(salt, msg.sender, signature)) revert InvalidSignature();
+        if (!verifySignature(salt, msg.sender, quantity, signature)) revert InvalidSignature();
 
         uint256 totalPrice = getNonAuctionPrice(quantity);
 
@@ -201,7 +201,7 @@ contract NFT is
         string calldata salt,
         bytes calldata signature
     ) external payable callerIsUser {
-        if (!verifySignature(salt, msg.sender, signature)) revert InvalidSignature();
+        if (!verifySignature(salt, msg.sender, quantity, signature)) revert InvalidSignature();
 
         uint256 _saleStartTime = uint256(auctionConfig.auctionSaleStartTime);
 
@@ -437,9 +437,10 @@ contract NFT is
     function verifySignature(
         string calldata _salt,
         address _userAddress,
+        uint256 quantity,
         bytes memory signature
     ) public view returns (bool) {
-        bytes32 rawMessageHash = _getMessageHash(_salt, _userAddress);
+        bytes32 rawMessageHash = _getMessageHash(_salt, _userAddress, quantity);
 
         return _recover(rawMessageHash, signature) == signer;
     }
@@ -452,8 +453,12 @@ contract NFT is
         return _baseTokenURI;
     }
 
-    function _getMessageHash(string calldata _salt, address _userAddress) internal view returns (bytes32) {
-        return keccak256(abi.encode(_salt, address(this), _userAddress));
+    function _getMessageHash(
+        string calldata _salt,
+        address _userAddress,
+        uint256 quantity
+    ) internal view returns (bytes32) {
+        return keccak256(abi.encode(_salt, address(this), _userAddress, quantity));
     }
 
     function _recover(bytes32 _rawMessageHash, bytes memory signature) internal pure returns (address) {
