@@ -9,6 +9,9 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "@chainlink/contracts/src/v0.8/interfaces/VRFCoordinatorV2Interface.sol";
 
+error ZeroAddress();
+error WrongRate();
+
 contract Factory is Ownable, ReentrancyGuard {
     // using SafeERC20Upgradeable for IERC20Upgradeable;
 
@@ -95,8 +98,8 @@ contract Factory is Ownable, ReentrancyGuard {
         uint256 platformRate_,
         uint256 commission_
     ) public onlyOwner {
-        require(platform_ != address(0), "PLATFORM ADDRESS IS ZERO");
-        require(platformRate_ < 100, "WRONG RATE");
+        if (platform_ == address(0)) revert ZeroAddress();
+        if (platformRate_ >= 100) revert WrongRate();
 
         platform = platform_;
         platformRate = platformRate_;
@@ -119,17 +122,19 @@ contract Factory is Ownable, ReentrancyGuard {
     // }
 
     function withdrawEth(address destination_, uint256 amount_) external onlyOwner nonReentrant {
-        require(destination_ != address(0), "DESTINATION_CANNT_BE_0_ADDRESS");
+        if (destination_ == address(0)) revert ZeroAddress();
 
         (bool success, ) = destination_.call{value: amount_}("");
-        require(success, "Failed to send Ether");
+
+        if (!success) revert SendEtherFailed();
     }
 
     function refundIfOver(uint256 price) private {
-        require(msg.value >= price, "Need to send more ETH.");
+        if (msg.value < price) revert EtherNotEnough();
         if (msg.value > price) {
             (bool success, ) = payable(msg.sender).call{value: msg.value - price}("");
-            require(success, "Failed to send Ether");
+
+            if (!success) revert SendEtherFailed();
         }
     }
 }

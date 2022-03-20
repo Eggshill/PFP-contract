@@ -14,6 +14,26 @@ import "@openzeppelin/contracts-upgradeable/utils/cryptography/ECDSAUpgradeable.
 import "@chainlink/contracts/src/v0.8/interfaces/LinkTokenInterface.sol";
 import "@chainlink/contracts/src/v0.8/interfaces/VRFCoordinatorV2Interface.sol";
 
+error ExceedCollectionSize();
+error CallerIsContract();
+error MintTooMuch();
+error ReachMaxDevMintReserve();
+error InvalidProof();
+error InvalidSignature();
+error PreSaleNotBegin();
+error PublicSaleNotBegin();
+error AuctionNotBegin();
+error ReachAuctionReserve();
+error EtherNotEnough();
+error TooMuchForAuction();
+error ArrayLengthNotMatch();
+error AlreadyRevealed();
+error AlreadySetStartingIndex();
+error NonexistentToken();
+error RandomnessRequestNotFinalized();
+error SendEtherFailed();
+error TransferFailed();
+
 contract NFT is
     VRFConsumerBaseV2Upgradeable,
     OwnableUpgradeable,
@@ -102,7 +122,7 @@ contract NFT is
         __VRFConsumerBaseV2_init(relatedAddresses_[2]);
         __ERC721A_init_unchained(name_, symbol_, notRevealedURI_);
 
-        require(amountForDevsAndPlatform_ <= collectionSize_, "larger collection size needed");
+        if (amountForDevsAndPlatform_ <= collectionSize_) revert ExceedCollectionSize();
 
         maxPerAddressDuringMint = maxPerAddressDuringMint_;
         amountForDevsAndPlatform = amountForDevsAndPlatform_;
@@ -128,7 +148,7 @@ contract NFT is
     }
 
     modifier callerIsUser() {
-        require(tx.origin == msg.sender, "The caller is another contract");
+        if (tx.origin != msg.sender) revert CallerIsContract();
         _;
     }
 
@@ -139,17 +159,17 @@ contract NFT is
         bytes32[] calldata merkleProof
     ) external payable override callerIsUser {
         uint256 totalPrice = getNonAuctionPrice(thisTimeMint);
-        require(totalPrice != 0, "allowlist sale has not begun yet");
 
-        uint256 userMinted = numberMinted(msg.sender);
-        require(userMinted + thisTimeMint <= maxPerAddressDuringMint, "exceed maxPerAddressDuringMint");
-        require(userMinted + thisTimeMint <= maxMint, "can not mint this many");
-        require(totalSupply() + thisTimeMint <= MAX_SUPPLY, "reached max supply");
+        if (totalPrice == 0) revert PreSaleNotBegin();
+
+        uint256 userTotalMinted = numberMinted(msg.sender) + thisTimeMint;
+
+        if (userTotalMinted > maxPerAddressDuringMint && userTotalMinted > maxMint) revert MintTooMuch();
+        if (totalSupply() + thisTimeMint > MAX_SUPPLY) revert ExceedCollectionSize();
 
         // Verify the merkle proof.
         bytes32 node = keccak256(abi.encodePacked(index, msg.sender, maxMint));
-        // bytes32 node = keccak256(abi.encodePacked(index, account));
-        require(MerkleProofUpgradeable.verify(merkleProof, balanceTreeRoot, node), "MerkleDistributor: Invalid proof.");
+        if (!MerkleProofUpgradeable.verify(merkleProof, balanceTreeRoot, node)) revert InvalidProof();
 
         refundIfOver(totalPrice);
         _safeMint(msg.sender, thisTimeMint);
@@ -162,12 +182,13 @@ contract NFT is
         string calldata salt,
         bytes calldata signature
     ) external payable callerIsUser {
-        require(verifySignature(salt, msg.sender, signature), "called with incorrect signature");
+        if (!verifySignature(salt, msg.sender, signature)) revert InvalidSignature();
 
         uint256 totalPrice = getNonAuctionPrice(quantity);
-        require(isPublicSaleOn(totalPrice), "public sale has not begun yet");
-        require(totalSupply() + quantity <= MAX_SUPPLY, "reached max supply");
-        require(numberMinted(msg.sender) + quantity <= maxPerAddressDuringMint, "can not mint this many");
+
+        if (!isPublicSaleOn(totalPrice)) revert PublicSaleNotBegin();
+        if (numberMinted(msg.sender) + quantity > maxPerAddressDuringMint) revert MintTooMuch();
+        if (totalSupply() + quantity > MAX_SUPPLY) revert ExceedCollectionSize();
 
         refundIfOver(totalPrice);
         _safeMint(msg.sender, quantity);
@@ -180,12 +201,15 @@ contract NFT is
         string calldata salt,
         bytes calldata signature
     ) external payable callerIsUser {
-        require(verifySignature(salt, msg.sender, signature), "called with incorrect signature");
+        if (!verifySignature(salt, msg.sender, signature)) revert InvalidSignature();
 
         uint256 _saleStartTime = uint256(auctionConfig.auctionSaleStartTime);
-        require(_saleStartTime != 0 && block.timestamp >= _saleStartTime, "sale has not started yet");
-        require(totalSupply() + quantity <= amountForAuction, "reached max supply");
-        require(numberMinted(msg.sender) + quantity <= maxPerAddressDuringMint, "can not mint this many");
+
+        if (_saleStartTime == 0 || block.timestamp < _saleStartTime) revert AuctionNotBegin();
+
+        if (totalSupply() + quantity > amountForAuction) revert ReachAuctionReserve();
+        if (numberMinted(msg.sender) + quantity > maxPerAddressDuringMint) revert MintTooMuch();
+
         uint256 totalCost = getAuctionPrice(_saleStartTime) * quantity;
 
         refundIfOver(totalCost);
@@ -195,10 +219,10 @@ contract NFT is
     }
 
     function refundIfOver(uint256 price) private {
-        require(msg.value >= price, "Need to send more ETH.");
+        if (msg.value < price) revert EtherNotEnough();
         if (msg.value > price) {
             (bool success, ) = payable(msg.sender).call{value: msg.value - price}("");
-            require(success, "Failed to send Ether");
+            if (!success) revert SendEtherFailed();
         }
     }
 
@@ -262,7 +286,8 @@ contract NFT is
     ) external onlyOwner {
         delete publicSaleStartTime;
 
-        require(amountForAuction_ < MAX_SUPPLY - totalSupply(), "too much for aucction");
+        if (amountForAuction_ > MAX_SUPPLY - totalSupply()) revert TooMuchForAuction();
+
         amountForAuction = amountForAuction_;
         uint128 auctionDropPerStep = (auctionStartPrice_ - auctionEndPrice_) /
             (auctionPriceCurveLength_ / auctionDropInterval_);
@@ -280,16 +305,9 @@ contract NFT is
         signer = signer_;
     }
 
-    // function seedAllowlist(address[] memory addresses, uint256[] memory numSlots) external onlyOwner {
-    //     require(addresses.length == numSlots.length, "addresses does not match numSlots length");
-    //     for (uint256 i = 0; i < addresses.length; i++) {
-    //         allowlist[addresses[i]] = numSlots[i];
-    //     }
-    // }
-
     // For marketing etc.
     function devMint(address[] calldata addresses, uint256[] calldata quantity) external onlyOwner {
-        require(addresses.length == quantity.length, "length not match");
+        if (addresses.length != quantity.length) revert ArrayLengthNotMatch();
 
         uint256 totalMint;
 
@@ -297,7 +315,7 @@ contract NFT is
             totalMint += quantity[i];
         }
 
-        require(totalSupply() + totalMint <= amountForDevsAndPlatform, "too many already minted before dev mint");
+        if (totalSupply() + totalMint > amountForDevsAndPlatform) revert ReachMaxDevMintReserve();
 
         for (uint256 i = 0; i < addresses.length; i++) {
             _safeMint(addresses[i], quantity[i]);
@@ -313,8 +331,8 @@ contract NFT is
     }
 
     function reveal(string calldata baseURI) external onlyOwner {
-        require(!revealed, "Already revealed");
-        require(initialrandomIndex == 0, "Already set Starting index");
+        if (revealed) revert AlreadyRevealed();
+        if (initialrandomIndex != 0) revert AlreadySetStartingIndex();
 
         ChainLinkConfig memory config = chainLinkConfig;
 
@@ -348,7 +366,7 @@ contract NFT is
     }
 
     function tokenURI(uint256 tokenId) public view virtual override returns (string memory) {
-        require(_exists(tokenId), "ERC721Metadata: URI query for nonexistent token");
+        if (!_exists(tokenId)) revert NonexistentToken();
 
         if (revealed == false) {
             return _notRevealedURI;
@@ -356,7 +374,7 @@ contract NFT is
 
         uint256 _initialrandomIndex = initialrandomIndex;
 
-        require(_initialrandomIndex != 0, "randomness request hasn't finalized");
+        if (_initialrandomIndex == 0) revert RandomnessRequestNotFinalized();
 
         string memory baseURI = _baseURI();
         uint256 collectionSize = MAX_SUPPLY;
@@ -394,13 +412,14 @@ contract NFT is
 
         if (platform != address(0)) {
             (success, ) = platform.call{value: (balance * (platformRate)) / 100}("");
-            require(success, "Failed to send Ether");
+            if (!success) revert SendEtherFailed();
         }
 
         balance = address(this).balance;
 
         (success, ) = owner().call{value: balance}("");
-        require(success, "Transfer failed.");
+
+        if (!success) revert TransferFailed();
     }
 
     function contractURI() public view override returns (string memory) {
