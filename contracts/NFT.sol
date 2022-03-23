@@ -24,6 +24,7 @@ error PreSaleNotBegin();
 error PublicSaleNotBegin();
 error AuctionNotBegin();
 error ReachAuctionReserve();
+error PriceLengthError();
 error EtherNotEnough();
 error TooMuchForAuction();
 error ArrayLengthNotMatch();
@@ -88,16 +89,11 @@ contract NFT is
         uint32 auctionSaleStartTime;
     }
 
-    struct PriceConfig {
-        uint128 preSalePriceA;
-        uint128 preSalePriceB;
-        uint128 publicSalePriceA;
-        uint128 publicSalePriceB;
-    }
-
     ChainLinkConfig public chainLinkConfig;
     AuctionConfig public auctionConfig;
-    PriceConfig public priceConfig;
+
+    mapping(uint256 => uint256) private preSalePriceOfNum;
+    mapping(uint256 => uint256) private publicSalePriceOfNum;
 
     // mapping(address => uint256) public allowlist;
 
@@ -160,7 +156,7 @@ contract NFT is
         uint256 maxMint,
         bytes32[] calldata merkleProof
     ) external payable override callerIsUser {
-        uint256 totalPrice = getPreSalePrice(thisTimeMint);
+        uint256 totalPrice = preSalePriceOfNum[thisTimeMint];
 
         if (totalPrice == 0) revert PreSaleNotBegin();
 
@@ -186,7 +182,7 @@ contract NFT is
     ) external payable callerIsUser {
         if (!verifySignature(salt, msg.sender, quantity, signature)) revert InvalidSignature();
 
-        uint256 totalPrice = getPublicSalePrice(quantity);
+        uint256 totalPrice = publicSalePriceOfNum[quantity];
 
         if (!isPublicSaleOn(totalPrice)) revert PublicSaleNotBegin();
         if (numberMinted(msg.sender) + quantity > maxPerAddressDuringMint) revert MintTooMuch();
@@ -245,40 +241,41 @@ contract NFT is
         }
     }
 
-    function getPreSalePrice(uint256 quantity) public view returns (uint256) {
-        PriceConfig memory config = priceConfig;
-        return config.preSalePriceA * quantity + config.preSalePriceB;
-    }
+    // function getPreSalePrice(uint256 quantity) public view returns (uint256) {
+    //     PriceConfig memory config = priceConfig;
+    //     return config.preSalePriceA * quantity + config.preSalePriceB;
+    // }
 
-    function getPublicSalePrice(uint256 quantity) public view returns (uint256) {
-        PriceConfig memory config = priceConfig;
-        return config.publicSalePriceA * quantity + config.publicSalePriceB;
-    }
+    // function getPublicSalePrice(uint256 quantity) public view returns (uint256) {
+    //     PriceConfig memory config = priceConfig;
+    //     return config.publicSalePriceA * quantity + config.publicSalePriceB;
+    // }
 
     function setMaxPerAddressDuringMint(uint32 quantity) external onlyOwner {
         maxPerAddressDuringMint = quantity;
     }
 
-    function updatePresaleInfo(
-        bytes32 newBalanceTreeRoot_,
-        uint128 a_,
-        uint128 b_
-    ) external onlyOwner {
+    function updatePresaleInfo(bytes32 newBalanceTreeRoot_, uint256[] calldata price_) external onlyOwner {
         balanceTreeRoot = newBalanceTreeRoot_;
-        PriceConfig memory config = priceConfig;
-        priceConfig = PriceConfig(a_, b_, config.publicSalePriceA, config.publicSalePriceB);
+
+        if (price_.length < maxPerAddressDuringMint) revert PriceLengthError();
+        for (uint256 i = 1; i <= price_.length; i++) {
+            preSalePriceOfNum[i] = price_[i];
+        }
     }
 
-    function endAuctionAndSetupPublicSaleInfo(
-        uint32 publicSaleStartTime_,
-        uint128 a_,
-        uint128 b_
-    ) external onlyOwner {
+    function endAuctionAndSetupPublicSaleInfo(uint32 publicSaleStartTime_, uint256[] calldata price_)
+        external
+        onlyOwner
+    {
         delete auctionConfig;
 
-        PriceConfig memory config = priceConfig;
         publicSaleStartTime = publicSaleStartTime_;
-        priceConfig = PriceConfig(config.preSalePriceA, config.preSalePriceB, a_, b_);
+
+        if (price_.length < maxPerAddressDuringMint) revert PriceLengthError();
+        for (uint256 i = 1; i <= price_.length; i++) {
+            publicSalePriceOfNum[i] = price_[i];
+        }
     }
 
     // function setAuctionSaleStartTime(uint32 timestamp) external onlyOwner {
