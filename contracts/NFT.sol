@@ -260,7 +260,7 @@ contract NFT is
 
         if (price_.length < maxPerAddressDuringMint) revert PriceLengthError();
         for (uint256 i = 1; i <= price_.length; i++) {
-            preSalePriceOfNum[i] = price_[i];
+            preSalePriceOfNum[i] = price_[i - 1];
         }
     }
 
@@ -274,7 +274,7 @@ contract NFT is
 
         if (price_.length < maxPerAddressDuringMint) revert PriceLengthError();
         for (uint256 i = 1; i <= price_.length; i++) {
-            publicSalePriceOfNum[i] = price_[i];
+            publicSalePriceOfNum[i] = price_[i - 1];
         }
     }
 
