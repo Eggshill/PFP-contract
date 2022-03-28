@@ -92,8 +92,8 @@ contract NFT is
     ChainLinkConfig public chainLinkConfig;
     AuctionConfig public auctionConfig;
 
-    mapping(uint256 => uint256) private preSalePriceOfNum;
-    mapping(uint256 => uint256) private publicSalePriceOfNum;
+    mapping(uint256 => uint256) public preSalePriceOfNum;
+    mapping(uint256 => uint256) public publicSalePriceOfNum;
 
     // mapping(address => uint256) public allowlist;
 
