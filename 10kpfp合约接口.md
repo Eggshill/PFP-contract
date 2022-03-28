@@ -213,6 +213,27 @@ Event Hex Signature: 20c8ec73527c784276103598d0c71c99bf355dc2d4773f68f05498efd06
 
 
 
+**V2版本:**
+
+
+
+**Function**: `updatePresaleInfo`
+
+**MethodID**: `4d4e9578`
+
+**Description**:   更新 MerkleRoot 以支持白名单, 设置价格参数(数组形式)
+
+| Parameter           | Type      | Description                                                  |
+| ------------------- | --------- | ------------------------------------------------------------ |
+| newBalanceTreeRoot_ | bytes32   | 新的 MerkleRoot                                              |
+| price_              | uint256[] | 价格参数数组, <br />eg: [3,5,7]分别代表 mint 1,2,3个的价格<br />数组长度不能小于 maxPerAddressDuringMint 的大小 |
+
+
+
+
+
+
+
 ### 2.5 白名单预售Mint
 
 **Function**: `preSalesMint`
@@ -324,9 +345,32 @@ Event Hex Signature: dec21920125339eda7ee3bad222a20df6041eb3a6dcef59e716c87bbbf4
 
 | Parameter           | Type    | Description  |
 | ------------------- | ------- | ------------ |
-| publicSaleStartTime_ | uint128 | 公售开始时间 |
+| publicSaleStartTime_ | uint32 | 公售开始时间 |
 | a_                 | uint128 | 价格参数a       |
 | b_                 | uint128 | 价格参数b       |
+
+
+
+
+
+**V2版本:**
+
+
+
+**Function**: `endAuctionAndSetupPublicSaleInfo`
+
+**MethodID**: `7a7e6c94`
+
+**Description**:   公售(固定价格) 参数设置, 并关闭荷兰拍
+
+| Parameter            | Type      | Description                                                  |
+| -------------------- | --------- | ------------------------------------------------------------ |
+| publicSaleStartTime_ | uint32    | 公售开始时间                                                 |
+| price_               | uint256[] | 价格参数数组, <br />eg: [3,5,7]分别代表 mint 1,2,3个的价格<br />数组长度不能小于 maxPerAddressDuringMint 的大小 |
+
+
+
+
 
 
 
@@ -381,6 +425,54 @@ Event Hex Signature: ecd35b7ff452057eb5131aa07239d81231e8728161ec2dc0ff51c92625f
 | Parameter | Type    | Description |
 | --------- | ------- | ----------- |
 | price     | uint256 | 所需价格    |
+
+
+
+**V2版本:**
+
+分为两个接口:
+
+
+
+**Function**: `preSalePriceOfNum`
+
+**MethodID**: ``
+
+**Description**:   查看当前预售阶段的 mint 价格
+
+| Parameter | Type    | Description |
+| --------- | ------- | ----------- |
+| quantity  | uint256 | 数量        |
+
+**Return Value**: 
+
+| Parameter | Type    | Description |
+| --------- | ------- | ----------- |
+| price     | uint256 | 所需价格    |
+
+
+
+**Function**: `publicSalePriceOfNum`
+
+**MethodID**: ``
+
+**Description**:   查看当前公售(固定价格)阶段的 mint 价格
+
+| Parameter | Type    | Description |
+| --------- | ------- | ----------- |
+| quantity  | uint256 | 数量        |
+
+**Return Value**: 
+
+| Parameter | Type    | Description |
+| --------- | ------- | ----------- |
+| price     | uint256 | 所需价格    |
+
+
+
+
+
+
 
 
 
