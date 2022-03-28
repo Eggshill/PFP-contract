@@ -2,7 +2,7 @@
 
 **Factory 合约地址**
 
-Rinkeby: 0xca96c79FD5b30FCA14F612019C4d166853f207Ea	
+Rinkeby: 0x0F035b95e3bF4c18a197BB0b985C0aC93339D667	
 
 
 
