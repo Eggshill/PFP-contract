@@ -120,7 +120,7 @@ contract NFT is
         __VRFConsumerBaseV2_init(relatedAddresses_[2]);
         __ERC721A_init_unchained(name_, symbol_, notRevealedURI_);
 
-        if (amountForDevsAndPlatform_ <= collectionSize_) revert ExceedCollectionSize();
+        if (amountForDevsAndPlatform_ >= collectionSize_) revert ExceedCollectionSize();
 
         maxPerAddressDuringMint = maxPerAddressDuringMint_;
         amountForDevsAndPlatform = amountForDevsAndPlatform_;
