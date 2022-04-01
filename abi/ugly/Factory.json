@@ -32,11 +32,6 @@
         "type": "bytes32"
       },
       {
-        "internalType": "uint64",
-        "name": "subscriptionId_",
-        "type": "uint64"
-      },
-      {
         "internalType": "address",
         "name": "proxyRegistryAddress_",
         "type": "address"
@@ -44,6 +39,26 @@
     ],
     "stateMutability": "nonpayable",
     "type": "constructor"
+  },
+  {
+    "inputs": [],
+    "name": "EtherNotEnough",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "SendEtherFailed",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "WrongRate",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "ZeroAddress",
+    "type": "error"
   },
   {
     "anonymous": false,

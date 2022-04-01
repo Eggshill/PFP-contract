@@ -1,5 +1,9 @@
 [
-  "constructor(address,uint256,uint256,address,address,bytes32,uint64,address)",
+  "constructor(address,uint256,uint256,address,address,bytes32,address)",
+  "error EtherNotEnough()",
+  "error SendEtherFailed()",
+  "error WrongRate()",
+  "error ZeroAddress()",
   "event CreateNFT(address indexed)",
   "event OwnershipTransferred(address indexed,address indexed)",
   "function changeImplementation(address)",

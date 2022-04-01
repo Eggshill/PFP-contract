@@ -1,6 +1,16 @@
 [
   {
     "inputs": [],
+    "name": "AlreadyRevealed",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "AlreadySetStartingIndex",
+    "type": "error"
+  },
+  {
+    "inputs": [],
     "name": "ApprovalCallerNotOwnerNorApproved",
     "type": "error"
   },
@@ -21,12 +31,52 @@
   },
   {
     "inputs": [],
+    "name": "ArrayLengthNotMatch",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "AuctionNotBegin",
+    "type": "error"
+  },
+  {
+    "inputs": [],
     "name": "BalanceQueryForZeroAddress",
     "type": "error"
   },
   {
     "inputs": [],
+    "name": "CallerIsContract",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "EtherNotEnough",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "ExceedCollectionSize",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "InvalidProof",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "InvalidSignature",
+    "type": "error"
+  },
+  {
+    "inputs": [],
     "name": "MintToZeroAddress",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "MintTooMuch",
     "type": "error"
   },
   {
@@ -37,6 +87,11 @@
   {
     "inputs": [],
     "name": "MintedQueryForZeroAddress",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "NonexistentToken",
     "type": "error"
   },
   {
@@ -62,7 +117,52 @@
   },
   {
     "inputs": [],
+    "name": "PreSaleNotBegin",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "PriceLengthError",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "PublicSaleNotBegin",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "RandomnessRequestNotFinalized",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "ReachAuctionReserve",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "ReachMaxDevMintReserve",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "SendEtherFailed",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "TooMuchForAuction",
+    "type": "error"
+  },
+  {
+    "inputs": [],
     "name": "TransferCallerNotOwnerNorApproved",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "TransferFailed",
     "type": "error"
   },
   {
@@ -454,14 +554,14 @@
   {
     "inputs": [
       {
-        "internalType": "uint256",
-        "name": "totalQuantity",
-        "type": "uint256"
+        "internalType": "address[]",
+        "name": "addresses",
+        "type": "address[]"
       },
       {
-        "internalType": "address",
-        "name": "devAddress",
-        "type": "address"
+        "internalType": "uint256[]",
+        "name": "quantity",
+        "type": "uint256[]"
       }
     ],
     "name": "devMint",
@@ -477,14 +577,9 @@
         "type": "uint32"
       },
       {
-        "internalType": "uint128",
-        "name": "a_",
-        "type": "uint128"
-      },
-      {
-        "internalType": "uint128",
-        "name": "b_",
-        "type": "uint128"
+        "internalType": "uint256[]",
+        "name": "price_",
+        "type": "uint256[]"
       }
     ],
     "name": "endAuctionAndSetupPublicSaleInfo",
@@ -558,25 +653,6 @@
       }
     ],
     "name": "getAuctionPrice",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "uint256",
-        "name": "quantity",
-        "type": "uint256"
-      }
-    ],
-    "name": "getNonAuctionPrice",
     "outputs": [
       {
         "internalType": "uint256",
@@ -844,6 +920,25 @@
     "inputs": [
       {
         "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "name": "preSalePriceOfNum",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
         "name": "index",
         "type": "uint256"
       },
@@ -869,24 +964,6 @@
     "type": "function"
   },
   {
-    "inputs": [],
-    "name": "priceConfig",
-    "outputs": [
-      {
-        "internalType": "uint128",
-        "name": "a",
-        "type": "uint128"
-      },
-      {
-        "internalType": "uint128",
-        "name": "b",
-        "type": "uint128"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
     "inputs": [
       {
         "internalType": "uint256",
@@ -907,6 +984,38 @@
     "name": "publicSaleMint",
     "outputs": [],
     "stateMutability": "payable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "name": "publicSalePriceOfNum",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "publicSaleStartTime",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
     "type": "function"
   },
   {
@@ -1251,14 +1360,9 @@
         "type": "bytes32"
       },
       {
-        "internalType": "uint128",
-        "name": "a_",
-        "type": "uint128"
-      },
-      {
-        "internalType": "uint128",
-        "name": "b_",
-        "type": "uint128"
+        "internalType": "uint256[]",
+        "name": "price_",
+        "type": "uint256[]"
       }
     ],
     "name": "updatePresaleInfo",
@@ -1277,6 +1381,11 @@
         "internalType": "address",
         "name": "_userAddress",
         "type": "address"
+      },
+      {
+        "internalType": "uint256",
+        "name": "quantity",
+        "type": "uint256"
       },
       {
         "internalType": "bytes",
