@@ -11,7 +11,6 @@ import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.
 import "@openzeppelin/contracts-upgradeable/utils/StringsUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/cryptography/MerkleProofUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/cryptography/ECDSAUpgradeable.sol";
-import "@chainlink/contracts/src/v0.8/interfaces/LinkTokenInterface.sol";
 import "@chainlink/contracts/src/v0.8/interfaces/VRFCoordinatorV2Interface.sol";
 
 error ExceedCollectionSize();
@@ -44,8 +43,10 @@ contract NFT is
     using StringsUpgradeable for uint256;
     using ECDSAUpgradeable for bytes32;
 
-    VRFCoordinatorV2Interface COORDINATOR;
-    LinkTokenInterface LINKTOKEN;
+    ProxyRegistry public constant PROXY_REGISTRY = ProxyRegistry(0xF57B2c51dED3A29e6891aba85459d600256Cf317);
+    VRFCoordinatorV2Interface public constant VRF_COORDINATOR =
+        VRFCoordinatorV2Interface(0x6168499c0cFfCaCD319c818142124B7A15E857ab);
+    bytes32 public constant KEY_HASH = 0xd89b2bf150e3b9e13446986e571fb9cab24b13cea0a43ea20a6049a85cc807cc;
 
     uint256 public MAX_SUPPLY;
 
@@ -61,7 +62,6 @@ contract NFT is
     // metadata URI
     string private _baseTokenURI;
     string private _notRevealedURI;
-    address private _proxyRegistryAddress;
 
     address public signer;
     bytes32 public override balanceTreeRoot;
@@ -112,19 +112,18 @@ contract NFT is
         uint256 maxPerAddressDuringMint_,
         uint256 collectionSize_,
         uint256 amountForDevsAndPlatform_,
-        bytes32 keyHash_,
         uint64 subscriptionId_,
         uint256 platformRate_,
-        // [0: platformAddress, 1: signer, 2: vrfCoordinatorAddress, 3: linkAddress, 4: proxyRegistryAddress]
-        address[5] calldata relatedAddresses_
+        address platformAddress_,
+        address signer_
     ) public initializer {
         __Ownable_init_unchained();
         __Context_init_unchained();
         __ERC165_init_unchained();
-        __VRFConsumerBaseV2_init(relatedAddresses_[2]);
+        __VRFConsumerBaseV2_init(address(VRF_COORDINATOR));
         __ERC721A_init_unchained(name_, symbol_, notRevealedURI_);
 
-        if (amountForDevsAndPlatform_ <= collectionSize_) revert ExceedCollectionSize();
+        if (amountForDevsAndPlatform_ >= collectionSize_) revert ExceedCollectionSize();
 
         maxPerAddressDuringMint = maxPerAddressDuringMint_;
         amountForDevsAndPlatform = amountForDevsAndPlatform_;
@@ -132,21 +131,17 @@ contract NFT is
 
         MAX_SUPPLY = collectionSize_;
 
-        LINKTOKEN = LinkTokenInterface(relatedAddresses_[3]);
-        COORDINATOR = VRFCoordinatorV2Interface(relatedAddresses_[2]);
-
         chainLinkConfig = ChainLinkConfig(
-            keyHash_,
+            KEY_HASH,
             subscriptionId_,
             100000, //callbackGasLimit
             3, //requestConfirmations
             1 //numWords
         );
 
-        platform = relatedAddresses_[0];
+        platform = platformAddress_;
         platformRate = platformRate_;
-        signer = relatedAddresses_[1];
-        _proxyRegistryAddress = relatedAddresses_[4];
+        signer = signer_;
     }
 
     modifier callerIsUser() {
@@ -345,7 +340,7 @@ contract NFT is
 
         ChainLinkConfig memory config = chainLinkConfig;
 
-        s_requestId = COORDINATOR.requestRandomWords(
+        s_requestId = VRF_COORDINATOR.requestRandomWords(
             config.keyhash,
             config.s_subscriptionId,
             config.requestConfirmations,
@@ -407,8 +402,8 @@ contract NFT is
 
     function isApprovedForAll(address _owner, address operator) public view override returns (bool) {
         // Whitelist OpenSea Proxy.
-        ProxyRegistry proxyRegistry = ProxyRegistry(_proxyRegistryAddress);
-        if (address(proxyRegistry.proxies(_owner)) == operator) {
+        
+        if (address(PROXY_REGISTRY.proxies(_owner)) == operator) {
             return true;
         }
 
