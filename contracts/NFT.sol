@@ -161,7 +161,7 @@ contract NFT is
 
         uint256 userTotalMinted = numberMinted(msg.sender) + thisTimeMint;
 
-        if (userTotalMinted > maxPerAddressDuringMint && userTotalMinted > maxMint) revert MintTooMuch();
+        if (userTotalMinted > maxPerAddressDuringMint || userTotalMinted > maxMint) revert MintTooMuch();
         if (totalSupply() + thisTimeMint > MAX_SUPPLY) revert ExceedCollectionSize();
 
         // Verify the merkle proof.
@@ -402,7 +402,7 @@ contract NFT is
 
     function isApprovedForAll(address _owner, address operator) public view override returns (bool) {
         // Whitelist OpenSea Proxy.
-        
+
         if (address(PROXY_REGISTRY.proxies(_owner)) == operator) {
             return true;
         }
