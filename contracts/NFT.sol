@@ -125,6 +125,7 @@ contract NFT is
 
         if (amountForDevsAndPlatform_ >= collectionSize_) revert ExceedCollectionSize();
 
+        _notRevealedURI = notRevealedURI_;
         maxPerAddressDuringMint = maxPerAddressDuringMint_;
         amountForDevsAndPlatform = amountForDevsAndPlatform_;
         amountForAuction = collectionSize_ - amountForDevsAndPlatform_;
