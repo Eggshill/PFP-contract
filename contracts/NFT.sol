@@ -61,7 +61,6 @@ contract NFT is
 
     // metadata URI
     string private _baseTokenURI;
-    string private _notRevealedURI;
 
     address public signer;
     bytes32 public override balanceTreeRoot;
@@ -125,7 +124,6 @@ contract NFT is
 
         if (amountForDevsAndPlatform_ >= collectionSize_) revert ExceedCollectionSize();
 
-        _notRevealedURI = notRevealedURI_;
         maxPerAddressDuringMint = maxPerAddressDuringMint_;
         amountForDevsAndPlatform = amountForDevsAndPlatform_;
         amountForAuction = collectionSize_ - amountForDevsAndPlatform_;
@@ -332,7 +330,7 @@ contract NFT is
     }
 
     function setNotRevealedURI(string calldata notRevealedURI) external onlyOwner {
-        _notRevealedURI = notRevealedURI;
+        _contractURI = notRevealedURI;
     }
 
     function reveal(string calldata baseURI) external onlyOwner {
@@ -374,7 +372,7 @@ contract NFT is
         if (!_exists(tokenId)) revert NonexistentToken();
 
         if (revealed == false) {
-            return _notRevealedURI;
+            return _contractURI;
         }
 
         uint256 _initialrandomIndex = initialrandomIndex;
@@ -428,7 +426,7 @@ contract NFT is
     }
 
     function contractURI() public view override returns (string memory) {
-        return _notRevealedURI;
+        return _contractURI;
     }
 
     function numberMinted(address owner) public view returns (uint256) {

@@ -89,7 +89,7 @@ contract ERC721AUpgradeable is
     string private _symbol;
 
     // Contract-level metadata
-    string private _contractURI;
+    string internal _contractURI;
 
     // Mapping from token ID to ownership details
     // An empty struct value does not necessarily mean the token is unowned. See ownershipOf implementation for details.
