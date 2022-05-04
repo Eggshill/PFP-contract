@@ -57,7 +57,7 @@ contract NFT is
     uint256 public maxPerAddressDuringMint;
     uint256 public amountForDevsAndPlatform;
     uint256 public amountForAuction;
-    uint256 public initialrandomIndex;
+    uint256 public initialRandomIndex;
     bool public revealed;
 
     // metadata URI
@@ -94,11 +94,10 @@ contract NFT is
     mapping(uint256 => uint256) public preSalePriceOfNum;
     mapping(uint256 => uint256) public publicSalePriceOfNum;
 
-    // mapping(address => uint256) public allowlist;
-
     event PreSalesMint(uint256 indexed index, address indexed account, uint256 amount, uint256 maxMint);
     event PublicSaleMint(address indexed user, uint256 number, uint256 totalCost);
     event AuctionMint(address indexed user, uint256 number, uint256 totalCost);
+    event Revealed(uint256 requestId, string baseURI, bool revealed);
 
     function initialize(
         string memory name_,
@@ -113,16 +112,13 @@ contract NFT is
         address signer_
     ) public initializer {
         __Ownable_init_unchained();
-        __Context_init_unchained();
-        __ERC165_init_unchained();
         __VRFConsumerBaseV2_init(address(VRF_COORDINATOR));
-        __ERC721A_init_unchained(name_, symbol_, notRevealedURI_);
+        __ERC721A_init(name_, symbol_, notRevealedURI_);
 
-        if (amountForDevsAndPlatform_ >= collectionSize_) revert ExceedCollectionSize();
+        if (amountForDevsAndPlatform_ > collectionSize_) revert ExceedCollectionSize();
 
         maxPerAddressDuringMint = maxPerAddressDuringMint_;
         amountForDevsAndPlatform = amountForDevsAndPlatform_;
-        amountForAuction = collectionSize_ - amountForDevsAndPlatform_;
 
         MAX_SUPPLY = collectionSize_;
 
@@ -272,10 +268,6 @@ contract NFT is
         }
     }
 
-    // function setAuctionSaleStartTime(uint32 timestamp) external onlyOwner {
-    //     publicSaleConfig.auctionSaleStartTime = timestamp;
-    // }
-
     function endPublicSalesAndSetupAuctionSaleInfo(
         uint32 auctionSaleStartTime_,
         uint128 auctionStartPrice_,
@@ -332,7 +324,7 @@ contract NFT is
 
     function reveal(string calldata baseURI) external onlyOwner {
         if (revealed) revert AlreadyRevealed();
-        if (initialrandomIndex != 0) revert AlreadySetStartingIndex();
+        if (initialRandomIndex != 0) revert AlreadySetStartingIndex();
 
         ChainLinkConfig memory config = chainLinkConfig;
 
@@ -345,8 +337,6 @@ contract NFT is
         );
 
         setBaseURI(baseURI);
-
-        // revealed = true;
     }
 
     function updateChainLinkConfig(
@@ -372,23 +362,22 @@ contract NFT is
             return _contractURI;
         }
 
-        uint256 _initialrandomIndex = initialrandomIndex;
-
-        if (_initialrandomIndex == 0) revert RandomnessRequestNotFinalized();
+        uint256 _initialRandomIndex = initialRandomIndex;
 
         string memory baseURI = _baseURI();
-        uint256 collectionSize = MAX_SUPPLY;
-        uint256 tailIndex = collectionSize - 1;
+        uint256 tailIndex = MAX_SUPPLY - 1;
 
-        uint256[] memory tempID = new uint256[](collectionSize);
+        uint256[] memory tempID = new uint256[](MAX_SUPPLY);
 
-        for (tailIndex; tailIndex > tokenId - 1; tailIndex--) {
-            tempID[_initialrandomIndex] = (tempID[tailIndex] == 0 ? tailIndex + 1 : tempID[tailIndex]);
+        //Adapt Knuth-Durstenfeld shuffle algorithm to fully randomize ID
+        for (tailIndex; tailIndex > tokenId - 1; tailIndex--) {    //only loop the ID to the tail
+            tempID[_initialRandomIndex] = (tempID[tailIndex] == 0 ? tailIndex + 1 : tempID[tailIndex]);
+            //No tail data is stored since they don't affect final ID anymore
 
-            _initialrandomIndex = (5 * _initialrandomIndex + 1) % tailIndex;
+            _initialRandomIndex = (5 * _initialRandomIndex + 1) % tailIndex;
         }
 
-        uint256 revealedID = (tempID[_initialrandomIndex] == 0 ? _initialrandomIndex + 1 : tempID[_initialrandomIndex]);
+        uint256 revealedID = (tempID[_initialRandomIndex] == 0 ? _initialRandomIndex + 1 : tempID[_initialRandomIndex]);
 
         return
             bytes(baseURI).length != 0
@@ -420,10 +409,6 @@ contract NFT is
         (success, ) = owner().call{value: balance}("");
 
         if (!success) revert TransferFailed();
-    }
-
-    function contractURI() public view override returns (string memory) {
-        return _contractURI;
     }
 
     function numberMinted(address owner) public view returns (uint256) {
@@ -468,23 +453,11 @@ contract NFT is
     /**
      * Callback function used by VRF Coordinator
      */
-    function fulfillRandomWords(
-        uint256, /* requestId */
-        uint256[] memory randomWords
-    ) internal virtual override {
-        // s_randomWord = randomWords[0];
-
-        uint256 _initialrandomIndex = (randomWords[0] % MAX_SUPPLY);
-
-        // Prevent default sequence and for check VRF result
-        if (_initialrandomIndex == 0) {
-            unchecked {
-                _initialrandomIndex = _initialrandomIndex + 1;
-            }
-        }
-
-        initialrandomIndex = _initialrandomIndex;
+    function fulfillRandomWords(uint256 requestId, uint256[] memory randomWords) internal virtual override {
+        initialRandomIndex = randomWords[0] % MAX_SUPPLY;
 
         revealed = true;
+
+        emit Revealed(requestId, _baseTokenURI, true);
     }
 }
