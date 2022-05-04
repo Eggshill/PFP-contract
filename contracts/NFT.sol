@@ -49,15 +49,15 @@ contract NFT is
         VRFCoordinatorV2Interface(0x6168499c0cFfCaCD319c818142124B7A15E857ab);
     bytes32 public constant KEY_HASH = 0xd89b2bf150e3b9e13446986e571fb9cab24b13cea0a43ea20a6049a85cc807cc;
 
-    uint256 public MAX_SUPPLY;
+    uint256 public immutable MAX_SUPPLY;
 
     uint256 public s_randomWord;
     uint256 public s_requestId;
 
     uint256 public maxPerAddressDuringMint;
-    uint256 public amountForDevsAndPlatform;
+    uint256 public immutable amountForDevsAndPlatform;
     uint256 public amountForAuction;
-    uint256 public initialrandomIndex;
+    uint256 public initialRandomIndex;
     bool public revealed;
 
     // metadata URI
@@ -66,8 +66,8 @@ contract NFT is
     address public signer;
     bytes32 public override balanceTreeRoot;
 
-    address public platform;
-    uint256 public platformRate;
+    address public immutable platform;
+    uint256 public immutable platformRate;
 
     uint256 public publicSaleStartTime;
 
@@ -325,7 +325,7 @@ contract NFT is
 
     function reveal(string calldata baseURI) external onlyOwner {
         if (revealed) revert AlreadyRevealed();
-        if (initialrandomIndex != 0) revert AlreadySetStartingIndex();
+        if (initialRandomIndex != 0) revert AlreadySetStartingIndex();
 
         ChainLinkConfig memory config = chainLinkConfig;
 
@@ -364,7 +364,7 @@ contract NFT is
             return _contractURI;
         }
 
-        uint256 _initialrandomIndex = initialrandomIndex;
+        uint256 _initialRandomIndex = initialRandomIndex;
 
         string memory baseURI = _baseURI();
         uint256 tailIndex = MAX_SUPPLY - 1;
@@ -373,13 +373,13 @@ contract NFT is
         
         //Adapt Knuth-Durstenfeld shuffle algorithm to fully randomize ID
         for (tailIndex; tailIndex > tokenId - 1; tailIndex--) {    //only loop the ID to the tail
-            tempID[_initialrandomIndex] = (tempID[tailIndex] == 0 ? tailIndex + 1 : tempID[tailIndex]);
+            tempID[_initialRandomIndex] = (tempID[tailIndex] == 0 ? tailIndex + 1 : tempID[tailIndex]);
             //No tail data is stored since they don't affect final ID anymore
             
-            _initialrandomIndex = (5 * _initialrandomIndex + 1) % tailIndex;
+            _initialRandomIndex = (5 * _initialRandomIndex + 1) % tailIndex;
         }
 
-        uint256 revealedID = (tempID[_initialrandomIndex] == 0 ? _initialrandomIndex + 1 : tempID[_initialrandomIndex]);
+        uint256 revealedID = (tempID[_initialRandomIndex] == 0 ? _initialRandomIndex + 1 : tempID[_initialRandomIndex]);
 
         return
             bytes(baseURI).length != 0
@@ -460,7 +460,7 @@ contract NFT is
         uint256[] memory randomWords
     ) internal virtual override {
 
-        initialrandomIndex = randomWords[0] % MAX_SUPPLY;
+        initialRandomIndex = randomWords[0] % MAX_SUPPLY;
 
         revealed = true;
     }
