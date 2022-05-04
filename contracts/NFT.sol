@@ -111,10 +111,8 @@ contract NFT is
         address signer_
     ) public initializer {
         __Ownable_init_unchained();
-        __Context_init_unchained();
-        __ERC165_init_unchained();
         __VRFConsumerBaseV2_init(address(VRF_COORDINATOR));
-        __ERC721A_init_unchained(name_, symbol_, notRevealedURI_);
+        __ERC721A_init(name_, symbol_, notRevealedURI_);
 
         if (amountForDevsAndPlatform_ >= collectionSize_) revert ExceedCollectionSize();
 
