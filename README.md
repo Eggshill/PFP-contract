@@ -1,7 +1,16 @@
 # PFP contract
 
-Generic 10K PFP smart contracts.
+Generic 10K PFP smart contracts
 
+***
+
+**Factory Contract Address**
+
+Rinkeby: 0x18018feB93EfadBc00De97531eA1826389b134F4	
+
+***
+
+**Features**
 - Factory contract with clone proxy
 - Tokenid staring from 1
 - Fair reveal with baseuri embedded
