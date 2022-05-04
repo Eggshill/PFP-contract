@@ -115,7 +115,7 @@ contract NFT is
         __VRFConsumerBaseV2_init(address(VRF_COORDINATOR));
         __ERC721A_init(name_, symbol_, notRevealedURI_);
 
-        if (amountForDevsAndPlatform_ >= collectionSize_) revert ExceedCollectionSize();
+        if (amountForDevsAndPlatform_ > collectionSize_) revert ExceedCollectionSize();
 
         maxPerAddressDuringMint = maxPerAddressDuringMint_;
         amountForDevsAndPlatform = amountForDevsAndPlatform_;
