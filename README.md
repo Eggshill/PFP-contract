@@ -1,15 +1,17 @@
-# Basic Sample Hardhat Project
+# PFP contract
 
-This project demonstrates a basic Hardhat use case. It comes with a sample contract, a test for that contract, a sample script that deploys that contract, and an example of a task implementation, which simply lists the available accounts.
+Generic 10K PFP smart contracts.
 
-Try running some of the following tasks:
+- Factory contract with clone proxy
+- Tokenid staring from 1
+- Fair reveal with baseuri embedded
+- Tokenuri fully randomized via adapted Knuth-Durstenfeld shuffle algorithm without gas consuming
+- Balance tree for flexible and gas-saving allowlist configuration
+- Signature with salt for verified public mint only
+- Same unrevealed uri for all tokenid
+- Dutch auction supported
+- Dev or marketing mint supported
+- ERC721A supported
+- Opensea proxy supported
+- contractURI for opensea supported
 
-```shell
-npx hardhat accounts
-npx hardhat compile
-npx hardhat clean
-npx hardhat test
-npx hardhat node
-node scripts/sample-script.js
-npx hardhat help
-```
