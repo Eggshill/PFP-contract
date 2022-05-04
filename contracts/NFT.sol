@@ -97,6 +97,7 @@ contract NFT is
     event PreSalesMint(uint256 indexed index, address indexed account, uint256 amount, uint256 maxMint);
     event PublicSaleMint(address indexed user, uint256 number, uint256 totalCost);
     event AuctionMint(address indexed user, uint256 number, uint256 totalCost);
+    event Revealed(string requestId, string baseURI, bool revealed);
 
     function initialize(
         string memory name_,
@@ -455,7 +456,7 @@ contract NFT is
      * Callback function used by VRF Coordinator
      */
     function fulfillRandomWords(
-        uint256, /* requestId */
+        uint256 requestId,
         uint256[] memory randomWords
     ) internal virtual override {
 
@@ -463,4 +464,6 @@ contract NFT is
 
         revealed = true;
     }
+    
+    emit Revealed(string requestId, string baseURI, bool revealed);
 }
