@@ -119,7 +119,6 @@ contract NFT is
 
         maxPerAddressDuringMint = maxPerAddressDuringMint_;
         amountForDevsAndPlatform = amountForDevsAndPlatform_;
-        amountForAuction = collectionSize_ - amountForDevsAndPlatform_;
 
         MAX_SUPPLY = collectionSize_;
 
