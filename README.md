@@ -23,6 +23,6 @@ Rinkeby: 0x18018feB93EfadBc00De97531eA1826389b134F4
 - ERC721A supported
 - Opensea proxy supported
 - contractURI for opensea supported
-- Audited (not for the lastest one)
+- Audited (not for the latest one)
 - Keep updating with new features
 
