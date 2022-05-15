@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: MIT
+// @author Eggshill.me
 
 pragma solidity ^0.8.4;
 
