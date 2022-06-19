@@ -6,7 +6,6 @@ pragma solidity ^0.8.4;
 import "./ERC721AUpgradeable.sol";
 import "./interfaces/IMerkleDistributor.sol";
 import "./utils/VRFConsumerBaseV2Upgradeable.sol";
-import "./utils/ProxyRegistry.sol";
 import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/StringsUpgradeable.sol";
@@ -45,14 +44,12 @@ contract NFT is
     using StringsUpgradeable for uint256;
     using ECDSAUpgradeable for bytes32;
 
-    ProxyRegistry public constant PROXY_REGISTRY = ProxyRegistry(0xF57B2c51dED3A29e6891aba85459d600256Cf317);
     VRFCoordinatorV2Interface public constant VRF_COORDINATOR =
         VRFCoordinatorV2Interface(0x6168499c0cFfCaCD319c818142124B7A15E857ab);
     bytes32 public constant KEY_HASH = 0xd89b2bf150e3b9e13446986e571fb9cab24b13cea0a43ea20a6049a85cc807cc;
 
     uint256 public MAX_SUPPLY;
 
-    uint256 public s_randomWord;
     uint256 public s_requestId;
 
     uint256 public maxPerAddressDuringMint;
@@ -98,7 +95,7 @@ contract NFT is
     event PreSalesMint(uint256 indexed index, address indexed account, uint256 amount, uint256 maxMint);
     event PublicSaleMint(address indexed user, uint256 number, uint256 totalCost);
     event AuctionMint(address indexed user, uint256 number, uint256 totalCost);
-    event Revealed(uint256 requestId, string baseURI, bool revealed);
+    event Revealed(uint256 requestId, uint256 randomWord, string baseURI, bool revealed);
 
     function initialize(
         string memory name_,
@@ -325,7 +322,6 @@ contract NFT is
 
     function reveal(string calldata baseURI) external onlyOwner {
         if (revealed) revert AlreadyRevealed();
-        if (initialRandomIndex != 0) revert AlreadySetStartingIndex();
 
         ChainLinkConfig memory config = chainLinkConfig;
 
@@ -340,21 +336,6 @@ contract NFT is
         setBaseURI(baseURI);
     }
 
-    function updateChainLinkConfig(
-        bytes32 keyhash_,
-        uint16 requestConfirmations_,
-        uint32 callbackGasLimit_
-    ) external onlyOwner {
-        ChainLinkConfig memory config = chainLinkConfig;
-
-        chainLinkConfig = ChainLinkConfig(
-            keyhash_,
-            config.s_subscriptionId,
-            callbackGasLimit_,
-            requestConfirmations_,
-            config.numWords
-        );
-    }
 
     function tokenURI(uint256 tokenId) public view virtual override returns (string memory) {
         if (!_exists(tokenId)) revert NonexistentToken();
@@ -365,13 +346,14 @@ contract NFT is
 
         uint256 _initialRandomIndex = initialRandomIndex;
 
-        string memory baseURI = _baseURI();
+        string memory baseURI = _baseTokenURI;
         uint256 tailIndex = MAX_SUPPLY - 1;
 
         uint256[] memory tempID = new uint256[](MAX_SUPPLY);
 
         //Adapt Knuth-Durstenfeld shuffle algorithm to fully randomize ID
-        for (tailIndex; tailIndex > tokenId - 1; tailIndex--) {    //only loop the ID to the tail
+        for (tailIndex; tailIndex > tokenId - 1; tailIndex--) {
+            //only loop the ID to the tail
             tempID[_initialRandomIndex] = (tempID[tailIndex] == 0 ? tailIndex + 1 : tempID[tailIndex]);
             //No tail data is stored since they don't affect final ID anymore
 
@@ -384,16 +366,6 @@ contract NFT is
             bytes(baseURI).length != 0
                 ? string(abi.encodePacked(baseURI, revealedID.toString(), ".json"))
                 : "baseuri not set correctly";
-    }
-
-    function isApprovedForAll(address _owner, address operator) public view override returns (bool) {
-        // Whitelist OpenSea Proxy.
-
-        if (address(PROXY_REGISTRY.proxies(_owner)) == operator) {
-            return true;
-        }
-
-        return super.isApprovedForAll(_owner, operator);
     }
 
     function withdrawMoney() external nonReentrant {
@@ -435,7 +407,7 @@ contract NFT is
         return 1;
     }
 
-    function _baseURI() internal view virtual override returns (string memory) {
+    function baseURI() public view returns (string memory) {
         return _baseTokenURI;
     }
 
@@ -459,6 +431,6 @@ contract NFT is
 
         revealed = true;
 
-        emit Revealed(requestId, _baseTokenURI, true);
+        emit Revealed(requestId, randomWords[0], _baseTokenURI, true);
     }
 }
