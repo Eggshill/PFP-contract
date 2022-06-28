@@ -33,6 +33,7 @@ error NonexistentToken();
 error RandomnessRequestNotFinalized();
 error SendEtherFailed();
 error TransferFailed();
+error OnlyCrossmint();
 
 contract NFT is
     VRFConsumerBaseV2Upgradeable,
@@ -94,6 +95,7 @@ contract NFT is
 
     event PreSalesMint(uint256 indexed index, address indexed account, uint256 amount, uint256 maxMint);
     event PublicSaleMint(address indexed user, uint256 number, uint256 totalCost);
+    event Crossmint(address indexed user, uint256 number, uint256 totalCost);
     event AuctionMint(address indexed user, uint256 number, uint256 totalCost);
     event Revealed(uint256 requestId, uint256 randomWord, string baseURI, bool revealed);
 
@@ -182,6 +184,23 @@ contract NFT is
         emit PublicSaleMint(msg.sender, quantity, totalPrice);
     }
 
+    function crossmint(
+        uint256 quantity,
+        address _to,
+    ) external payable {
+        if (msg.sender != 0xdab1a1854214684ace522439684a145e62505233) revert OnlyCrossmint();
+
+        uint256 totalPrice = publicSalePriceOfNum[quantity];
+
+        if (!isPublicSaleOn(totalPrice)) revert PublicSaleNotBegin();
+        if (totalSupply() + quantity > MAX_SUPPLY) revert ExceedCollectionSize();
+
+        refundIfOver(totalPrice);
+        _safeMint(_to, quantity);
+
+        emit Crossmint(_to, quantity, totalPrice);
+    }
+
     function auctionMint(
         uint256 quantity,
         string calldata salt,
@@ -256,7 +275,7 @@ contract NFT is
         external
         onlyOwner
     {
-        delete auctionConfig;
+        if (auctionConfig != 0) delete auctionConfig;
 
         publicSaleStartTime = publicSaleStartTime_;
 
@@ -274,7 +293,7 @@ contract NFT is
         uint64 auctionDropInterval_,
         uint256 amountForAuction_
     ) external onlyOwner {
-        delete publicSaleStartTime;
+        if (publicSaleStartTime != 0) delete publicSaleStartTime;
 
         if (amountForAuction_ > MAX_SUPPLY - totalSupply()) revert TooMuchForAuction();
 
