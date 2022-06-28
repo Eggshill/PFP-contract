@@ -184,11 +184,8 @@ contract NFT is
         emit PublicSaleMint(msg.sender, quantity, totalPrice);
     }
 
-    function crossmint(
-        uint256 quantity,
-        address _to,
-    ) external payable {
-        if (msg.sender != 0xdab1a1854214684ace522439684a145e62505233) revert OnlyCrossmint();
+    function crossmint(uint256 quantity, address _to) external payable {
+        if (msg.sender != 0xdAb1a1854214684acE522439684a145E62505233) revert OnlyCrossmint();
 
         uint256 totalPrice = publicSalePriceOfNum[quantity];
 
@@ -275,7 +272,7 @@ contract NFT is
         external
         onlyOwner
     {
-        if (auctionConfig != 0) delete auctionConfig;
+        if (auctionConfig.auctionSaleStartTime != 0) delete auctionConfig;
 
         publicSaleStartTime = publicSaleStartTime_;
 
@@ -354,7 +351,6 @@ contract NFT is
 
         setBaseURI(baseURI);
     }
-
 
     function tokenURI(uint256 tokenId) public view virtual override returns (string memory) {
         if (!_exists(tokenId)) revert NonexistentToken();
