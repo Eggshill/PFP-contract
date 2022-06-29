@@ -6,11 +6,6 @@
   },
   {
     "inputs": [],
-    "name": "AlreadySetStartingIndex",
-    "type": "error"
-  },
-  {
-    "inputs": [],
     "name": "ApprovalCallerNotOwnerNorApproved",
     "type": "error"
   },
@@ -112,6 +107,11 @@
   },
   {
     "inputs": [],
+    "name": "OnlyCrossmint",
+    "type": "error"
+  },
+  {
+    "inputs": [],
     "name": "OwnerQueryForNonexistentToken",
     "type": "error"
   },
@@ -128,11 +128,6 @@
   {
     "inputs": [],
     "name": "PublicSaleNotBegin",
-    "type": "error"
-  },
-  {
-    "inputs": [],
-    "name": "RandomnessRequestNotFinalized",
     "type": "error"
   },
   {
@@ -261,6 +256,31 @@
       {
         "indexed": true,
         "internalType": "address",
+        "name": "user",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "number",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "totalCost",
+        "type": "uint256"
+      }
+    ],
+    "name": "Crossmint",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
         "name": "previousOwner",
         "type": "address"
       },
@@ -334,6 +354,37 @@
     "anonymous": false,
     "inputs": [
       {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "requestId",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "randomWord",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "string",
+        "name": "baseURI",
+        "type": "string"
+      },
+      {
+        "indexed": false,
+        "internalType": "bool",
+        "name": "revealed",
+        "type": "bool"
+      }
+    ],
+    "name": "Revealed",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
         "indexed": true,
         "internalType": "address",
         "name": "from",
@@ -357,12 +408,38 @@
   },
   {
     "inputs": [],
+    "name": "KEY_HASH",
+    "outputs": [
+      {
+        "internalType": "bytes32",
+        "name": "",
+        "type": "bytes32"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
     "name": "MAX_SUPPLY",
     "outputs": [
       {
         "internalType": "uint256",
         "name": "",
         "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "VRF_COORDINATOR",
+    "outputs": [
+      {
+        "internalType": "contract VRFCoordinatorV2Interface",
+        "name": "",
+        "type": "address"
       }
     ],
     "stateMutability": "view",
@@ -507,6 +584,19 @@
   },
   {
     "inputs": [],
+    "name": "baseURI",
+    "outputs": [
+      {
+        "internalType": "string",
+        "name": "",
+        "type": "string"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
     "name": "chainLinkConfig",
     "outputs": [
       {
@@ -549,6 +639,24 @@
       }
     ],
     "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "quantity",
+        "type": "uint256"
+      },
+      {
+        "internalType": "address",
+        "name": "_to",
+        "type": "address"
+      }
+    ],
+    "name": "crossmint",
+    "outputs": [],
+    "stateMutability": "payable",
     "type": "function"
   },
   {
@@ -700,6 +808,19 @@
     "type": "function"
   },
   {
+    "inputs": [],
+    "name": "initialRandomIndex",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
     "inputs": [
       {
         "internalType": "string",
@@ -732,11 +853,6 @@
         "type": "uint256"
       },
       {
-        "internalType": "bytes32",
-        "name": "keyHash_",
-        "type": "bytes32"
-      },
-      {
         "internalType": "uint64",
         "name": "subscriptionId_",
         "type": "uint64"
@@ -747,9 +863,14 @@
         "type": "uint256"
       },
       {
-        "internalType": "address[5]",
-        "name": "relatedAddresses_",
-        "type": "address[5]"
+        "internalType": "address",
+        "name": "platformAddress_",
+        "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "signer_",
+        "type": "address"
       }
     ],
     "name": "initialize",
@@ -758,23 +879,10 @@
     "type": "function"
   },
   {
-    "inputs": [],
-    "name": "initialrandomIndex",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
     "inputs": [
       {
         "internalType": "address",
-        "name": "_owner",
+        "name": "owner",
         "type": "address"
       },
       {
@@ -1071,19 +1179,6 @@
   },
   {
     "inputs": [],
-    "name": "s_randomWord",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
     "name": "s_requestId",
     "outputs": [
       {
@@ -1325,29 +1420,6 @@
       }
     ],
     "name": "transferOwnership",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "bytes32",
-        "name": "keyhash_",
-        "type": "bytes32"
-      },
-      {
-        "internalType": "uint16",
-        "name": "requestConfirmations_",
-        "type": "uint16"
-      },
-      {
-        "internalType": "uint32",
-        "name": "callbackGasLimit_",
-        "type": "uint32"
-      }
-    ],
-    "name": "updateChainLinkConfig",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
