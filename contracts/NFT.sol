@@ -192,7 +192,7 @@ contract NFT is
 
         if (!isPublicSaleOn(totalPrice)) revert PublicSaleNotBegin();
         if (totalSupply() + quantity > MAX_SUPPLY) revert ExceedCollectionSize();
-
+        
         refundIfOver(totalPrice);
         _safeMint(_to, quantity);
 
@@ -316,14 +316,15 @@ contract NFT is
     function devMint(address[] calldata addresses, uint256[] calldata quantity) external onlyOwner {
         if (addresses.length != quantity.length) revert ArrayLengthNotMatch();
 
-        uint256 totalMint;
+        uint256 totalQuantity;
 
         for (uint256 i = 0; i < addresses.length; i++) {
-            totalMint += quantity[i];
+            totalQuantity += quantity[i];
         }
 
-        totalDevMint += totalMint;
+        totalDevMint += totalQuantity;
 
+        if (totalSupply() + totalQuantity > MAX_SUPPLY) revert ExceedCollectionSize();
         if (totalDevMint > amountForDevsAndPlatform) revert ReachMaxDevMintReserve();
 
         for (uint256 i = 0; i < addresses.length; i++) {
