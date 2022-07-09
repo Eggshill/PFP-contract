@@ -59,9 +59,6 @@ contract NFT is
     uint256 public initialRandomIndex;
     bool public revealed;
 
-    // metadata URI
-    string private _baseTokenURI;
-
     address public signer;
     bytes32 public override balanceTreeRoot;
 
@@ -92,6 +89,10 @@ contract NFT is
 
     mapping(uint256 => uint256) public preSalePriceOfNum;
     mapping(uint256 => uint256) public publicSalePriceOfNum;
+
+    // metadata URI
+    string private _baseTokenURI;
+    uint256 private totalDevMint;
 
     event PreSalesMint(uint256 indexed index, address indexed account, uint256 amount, uint256 maxMint);
     event PublicSaleMint(address indexed user, uint256 number, uint256 totalCost);
@@ -321,7 +322,9 @@ contract NFT is
             totalMint += quantity[i];
         }
 
-        if (totalSupply() + totalMint > amountForDevsAndPlatform) revert ReachMaxDevMintReserve();
+        totalDevMint += totalMint;
+
+        if (totalDevMint > amountForDevsAndPlatform) revert ReachMaxDevMintReserve();
 
         for (uint256 i = 0; i < addresses.length; i++) {
             _safeMint(addresses[i], quantity[i]);
