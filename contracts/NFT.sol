@@ -59,9 +59,6 @@ contract NFT is
     uint256 public initialRandomIndex;
     bool public revealed;
 
-    // metadata URI
-    string private _baseTokenURI;
-
     address public signer;
     bytes32 public override balanceTreeRoot;
 
@@ -92,6 +89,10 @@ contract NFT is
 
     mapping(uint256 => uint256) public preSalePriceOfNum;
     mapping(uint256 => uint256) public publicSalePriceOfNum;
+
+    // metadata URI
+    string private _baseTokenURI;
+    uint256 private totalDevMint;
 
     event PreSalesMint(uint256 indexed index, address indexed account, uint256 amount, uint256 maxMint);
     event PublicSaleMint(address indexed user, uint256 number, uint256 totalCost);
@@ -191,7 +192,7 @@ contract NFT is
 
         if (!isPublicSaleOn(totalPrice)) revert PublicSaleNotBegin();
         if (totalSupply() + quantity > MAX_SUPPLY) revert ExceedCollectionSize();
-
+        
         refundIfOver(totalPrice);
         _safeMint(_to, quantity);
 
@@ -315,13 +316,16 @@ contract NFT is
     function devMint(address[] calldata addresses, uint256[] calldata quantity) external onlyOwner {
         if (addresses.length != quantity.length) revert ArrayLengthNotMatch();
 
-        uint256 totalMint;
+        uint256 totalQuantity;
 
         for (uint256 i = 0; i < addresses.length; i++) {
-            totalMint += quantity[i];
+            totalQuantity += quantity[i];
         }
 
-        if (totalSupply() + totalMint > amountForDevsAndPlatform) revert ReachMaxDevMintReserve();
+        totalDevMint += totalQuantity;
+
+        if (totalSupply() + totalQuantity > MAX_SUPPLY) revert ExceedCollectionSize();
+        if (totalDevMint > amountForDevsAndPlatform) revert ReachMaxDevMintReserve();
 
         for (uint256 i = 0; i < addresses.length; i++) {
             _safeMint(addresses[i], quantity[i]);
