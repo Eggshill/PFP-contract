@@ -14,7 +14,7 @@ error WrongRate();
 
 contract Factory is Ownable, ReentrancyGuard {
     VRFCoordinatorV2Interface public constant VRF_COORDINATOR =
-        VRFCoordinatorV2Interface(0x6168499c0cFfCaCD319c818142124B7A15E857ab);
+        VRFCoordinatorV2Interface(0x271682DEB8C4E0901D1a1550aD2e64D568E69909);
 
     address public erc721AImplementation;
     address public platform;
